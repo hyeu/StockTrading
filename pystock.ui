@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1542</width>
-    <height>891</height>
+    <width>1352</width>
+    <height>798</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
      <rect>
       <x>440</x>
       <y>20</y>
-      <width>1061</width>
-      <height>481</height>
+      <width>761</width>
+      <height>451</height>
      </rect>
     </property>
     <property name="title">
@@ -31,7 +31,7 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>1031</width>
+       <width>711</width>
        <height>131</height>
       </rect>
      </property>
@@ -75,7 +75,7 @@
       <rect>
        <x>10</x>
        <y>170</y>
-       <width>1031</width>
+       <width>711</width>
        <height>261</height>
       </rect>
      </property>
@@ -115,39 +115,13 @@
       </property>
      </column>
     </widget>
-    <widget class="QCheckBox" name="checkBox">
-     <property name="geometry">
-      <rect>
-       <x>710</x>
-       <y>440</y>
-       <width>171</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>실시간 조회</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_2">
-     <property name="geometry">
-      <rect>
-       <x>920</x>
-       <y>440</y>
-       <width>81</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>조회</string>
-     </property>
-    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>440</x>
-      <y>520</y>
-      <width>1061</width>
+      <x>430</x>
+      <y>480</y>
+      <width>911</width>
       <height>281</height>
      </rect>
     </property>
@@ -159,7 +133,7 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>1031</width>
+       <width>891</width>
        <height>241</height>
       </rect>
      </property>
@@ -226,7 +200,7 @@
       <x>20</x>
       <y>80</y>
       <width>411</width>
-      <height>711</height>
+      <height>441</height>
      </rect>
     </property>
     <property name="title">
@@ -238,7 +212,7 @@
        <x>10</x>
        <y>30</y>
        <width>391</width>
-       <height>581</height>
+       <height>401</height>
       </rect>
      </property>
      <column>
@@ -277,19 +251,6 @@
       </property>
      </column>
     </widget>
-    <widget class="QPushButton" name="pushButton">
-     <property name="geometry">
-      <rect>
-       <x>240</x>
-       <y>620</y>
-       <width>150</width>
-       <height>46</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>조회</string>
-     </property>
-    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -297,8 +258,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1542</width>
-     <height>38</height>
+     <width>1352</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>

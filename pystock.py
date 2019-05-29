@@ -34,9 +34,9 @@ class MyWindow(QMainWindow, form_class):
         self.comboBox.addItems(accounts_list)
 
         # 조회 버튼
-        self.pushButton_2.clicked.connect(self.check_balance)
+        self.check_balance()
         self.kiwoom.OnReceiveRealData.connect(self.kiwoom._receive_real_data)
-        self.pushButton.clicked.connect(self.check_chejan_balance)
+        self.check_chejan_balance()
 
         self.load_buy_sell_list()
 
@@ -154,8 +154,8 @@ class MyWindow(QMainWindow, form_class):
         self.statusbar.showMessage(state_msg + " | " + time_msg)
 
     def timeout2(self):
-        if self.checkBox.isChecked():
-            self.check_balance()
+        self.check_balance()
+        self.check_chejan_balance()
 
     # 주식 종목코드, 종목명 출력
     def code_changed(self):
