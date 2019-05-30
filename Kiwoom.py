@@ -21,6 +21,7 @@ class Kiwoom(QAxWidget):
         self._create_kiwoom_instance()
         self._set_signal_slots()
         self.sig = Sig()
+        self.orderNum = ""
 
     def signal_(self):
         self.sig.signal()
@@ -174,6 +175,7 @@ class Kiwoom(QAxWidget):
    # def _receive_real_condition(self, scode, event_type, condi_name, cond_index):
     # 이벤트 발생 시 처리
     def _receive_tr_data(self, screen_no, rqname, trcode, record_name, next, unused1, unused2, unused3, unused4):
+        self.orderNum = self._comm_get_data(trcode, "", rqname, 0, "주문번호")
         # next라는 인자 값을 통해 연속조회 필요여부
         if next == '2':
             self.remained_data = True
@@ -245,6 +247,7 @@ class Kiwoom(QAxWidget):
             yet_vol =  self._comm_get_data(trcode,"",rqname,i,"미체결수량")
             time = self._comm_get_data(trcode, "", rqname, i, "시간")
 
+            #self.sig.signal()
             print(status, gubun, order_num, code, vol, yet_vol, time)
             self.opt10075_output['no_che'].append([status, gubun, order_num, code, vol, yet_vol, time])
 
@@ -276,6 +279,7 @@ class Kiwoom(QAxWidget):
 
     # opw00018 데이터 변수에 저장
     def reset_opw00018_output(self):
+        #self.sig.signal()
         self.opw00018_output = {'single': [], 'multi': []}
 
     # 잔고 및 보유종목 현황

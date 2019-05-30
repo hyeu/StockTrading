@@ -68,7 +68,10 @@ class MyWindow(QMainWindow, form_class):
 
             if split_row_data[-1].rstrip() == '매수전':
                 self.kiwoom.send_order("send_order_req", "0101", account, 1, code, num, price, hoga_lookup[hoga], "")
-
+                # 주문이 들어갔을 때만 주문 완료로 바꿈
+                if self.kiwoom.orderNum:
+                    for i, row_data in enumerate(buy_list):
+                        buy_list[i] = buy_list[i].replace("매수전", "주문완료")
 
         for row_data in sell_list:
             split_row_data = row_data.split(';')
@@ -82,6 +85,10 @@ class MyWindow(QMainWindow, form_class):
 
             if split_row_data[-1].rstrip() == '매도전':
                 self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, price, hoga_lookup[hoga], "")
+                # 주문이 들어갔을 때만 주문 완료로 바꿈
+                if self.kiwoom.orderNum:
+                    for i, row_data in enumerate(buy_list):
+                        sell_list[i] = sell_list[i].replace("매도전", "주문완료")
 
 
         f = open("trade.txt", 'wt')
