@@ -1,9 +1,14 @@
 import sys
+import datetime
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic
 from Kiwoom import *
+from pandas import DataFrame
 import time
+import pdb
+
+TRADING_TIME = [[[9, 5], [15, 19]]]
 
 form_class = uic.loadUiType("pystock.ui")[0]
 
@@ -17,47 +22,88 @@ class MyWindow(QMainWindow, form_class):
         self.kiwoom = Kiwoom()
         self.kiwoom.comm_connect()
 
+        self.get_curclose()
+        #pdb.set_trace()
+        self.currentTime = datetime.datetime.now()
         self.timer = QTimer(self)
         self.timer.start(1000)
         self.timer.timeout.connect(self.timeout)
 
-        #실시간 조회 타이머
+        # Timer2 실시간 조회 체크박스 체크하면 10초에 한 번씩 데이터 자동 갱신
         self.timer2 = QTimer(self)
-        self.timer2.start(1000 * 10)
+        self.timer2.start(1000*10)
         self.timer2.timeout.connect(self.timeout2)
 
-        # 계좌 정보 출력
+        # 선정 종목 리스트
+        self.load_buy_sell_list()
+
         accouns_num = int(self.kiwoom.get_login_info("ACCOUNT_CNT"))
         accounts = self.kiwoom.get_login_info("ACCNO")
+
 
         accounts_list = accounts.split(';')[0:accouns_num]
         self.comboBox.addItems(accounts_list)
 
-        # 조회 버튼
+        #self.pushButton_2.clicked.connect(self.check_balance)
         self.check_balance()
-        self.kiwoom.OnReceiveRealData.connect(self.kiwoom._receive_real_data)
+        #self.kiwoom.OnReceiveRealData.connect(self.kiwoom._receive_real_data)
         self.check_chejan_balance()
+        #self.save_final_stock()
 
-        self.load_buy_sell_list()
+
+    def is_trading_time(self):
+        vals = []
+        current_time = self.currentTime.time()
+        for start, end in TRADING_TIME:
+            start_time = datetime.time(hour=start[0], minute=start[1])
+            end_time = datetime.time(hour=end[0], minute=end[1])
+            if(current_time >= start_time and current_time <= end_time):
+                vals.append(True)
+            else:
+                vals.append(False)
+                pass
+        if vals.count(True):
+            return True
+        else:
+            return False
+
+    """def stock_name(self):
+        f = open("buy_list.txt", 'rt')
+        buy_list = f.readlines()
+        f.close()
+        account = self.comboBox.currentText()
+
+        for row_data in buy_list:
+            split_row_data = row_data.split(';')
+            code = split_row_data[1]
+"""
 
 
+
+#주문을 들어가기 전에 파일에서 불러와서 종목을 확인, 종목의 전일 종가 확인 - 첫 번째 주문 시
+#두 번째 주문부터는 이미 주문 들어간 파일에서 확인
+    # 자동 주문
     def trade_stocks(self):
+        #self.check_balance()
+        auto_buy = []
         hoga_lookup = {'지정가': "00", '시장가': "03"}
 
         f = open("buy_list.txt", 'rt')
         buy_list = f.readlines()
+        auto_buy += buy_list
         f.close()
 
         f = open("sell_list.txt", 'rt')
         sell_list = f.readlines()
         f.close()
 
-        # account
         account = self.comboBox.currentText()
-
-        # buylist
-        for row_data in buy_list:
-            split_row_data = row_data.split(';')
+        close_rate, current_rate = self.get_curclose()
+        #print("rate: ", rate[2][0])
+        print(current_rate)
+        # buy list
+        for i in range(len(auto_buy)):
+            split_row_data = auto_buy[i].split(';')
             code = split_row_data[1]
             hoga = split_row_data[2]
             num = split_row_data[3]
@@ -66,13 +112,28 @@ class MyWindow(QMainWindow, form_class):
             pr = split_row_data[6]
             lr = split_row_data[7]
 
-            if split_row_data[-1].rstrip() == '매수전':
+            print("bdr:", float(bdr))
+            # 전날 종가
+            new_price = close_rate[i][0] * float(bdr)
+            print("cnt:", i)
+            print("rate[cnt]", close_rate[i][0])
+            print("new_price:", new_price)
+            hoga = "지정가"
+
+            if split_row_data[-1].rstrip() == '매수전' and new_price <= current_rate[i][0] and self.is_trading_time() == True:
+                self.kiwoom.send_order("send_order_req", "0101", account, 1, code, num, int(new_price), hoga_lookup[hoga], "")
+                # 주문이 들어갔을 때만 주문 완료로 바꿈
+                if self.kiwoom.orderNum:
+                    for i, row_data in enumerate(buy_list):
+                        buy_list[i] = buy_list[i].replace("매수전", "주문완료")
+            elif split_row_data[-1].rstrip() == '매수전' and self.is_trading_time() == False:
                 self.kiwoom.send_order("send_order_req", "0101", account, 1, code, num, price, hoga_lookup[hoga], "")
                 # 주문이 들어갔을 때만 주문 완료로 바꿈
                 if self.kiwoom.orderNum:
                     for i, row_data in enumerate(buy_list):
                         buy_list[i] = buy_list[i].replace("매수전", "주문완료")
 
+        # sell list
         for row_data in sell_list:
             split_row_data = row_data.split(';')
             code = split_row_data[1]
@@ -90,23 +151,23 @@ class MyWindow(QMainWindow, form_class):
                     for i, row_data in enumerate(buy_list):
                         sell_list[i] = sell_list[i].replace("매도전", "주문완료")
 
-
-        f = open("trade.txt", 'wt')
+        # file update
+        f = open("buy_list.txt", 'wt')
         for row_data in buy_list:
             f.write(row_data)
         f.close()
 
-        '''for i, row_data in enumerate(sell_list):
-            sell_list[i] = sell_list[i].replace("매도전", "주문완료")'''
+        # sell list
+        """for i, row_data in enumerate(sell_list):
+            sell_list[i] = sell_list[i].replace("매도전", "주문완료")"""
 
+        # file update
         f = open("sell_list.txt", 'wt')
         for row_data in sell_list:
             f.write(row_data)
         f.close()
 
-
     def load_buy_sell_list(self):
-
         f = open("buy_list.txt", 'rt')
         buy_list = f.readlines()
         f.close()
@@ -118,21 +179,24 @@ class MyWindow(QMainWindow, form_class):
         row_count = len(buy_list) + len(sell_list)
         self.tableWidget_3.setRowCount(row_count)
 
+        # buy list
+        # j:행, i:열
         for j in range(len(buy_list)):
             row_data = buy_list[j]
             split_row_data = row_data.split(';')
             # 종목명 구하기
-            split_row_data[1] = self.kiwoom.get_master_code_name(split_row_data[1].rsplit())
+            split_row_data[1] = self.kiwoom.get_master_code_name(split_row_data[1].rstrip())
 
             for i in range(len(split_row_data)):
                 item = QTableWidgetItem(split_row_data[i].rstrip())
                 item.setTextAlignment(Qt.AlignVCenter | Qt.AlignCenter)
                 self.tableWidget_3.setItem(j, i, item)
 
+        # sell list
         for j in range(len(sell_list)):
             row_data = sell_list[j]
             split_row_data = row_data.split(';')
-            split_row_data[1] = self.kiwoom.get_master_code_name(split_row_data[1].rsplit())
+            split_row_data[1] = self.kiwoom.get_master_code_name(split_row_data[1].rstrip())
 
             for i in range(len(split_row_data)):
                 item = QTableWidgetItem(split_row_data[i].rstrip())
@@ -141,6 +205,19 @@ class MyWindow(QMainWindow, form_class):
 
         self.tableWidget_3.resizeRowsToContents()
 
+    def save_final_stock(self):
+        item_count = len(self.kiwoom.opw00018_output['multi'])
+        if(self.is_trading_time() == False):
+            self.final_stock = []
+            for i in range(item_count):
+                row = self.kiwoom.opw00018_output['multi'][i][3]
+                self.final_stock.append(row)
+            print(self.final_stock)
+        #if(self.is_trading_time() == True):
+            #종가 파일로 저장.
+
+
+
     def timeout(self):
         market_start_time = QTime(9, 0, 0)
         current_time = QTime.currentTime()
@@ -148,6 +225,7 @@ class MyWindow(QMainWindow, form_class):
         if current_time > market_start_time and self.trade_stocks_done is False:
             self.trade_stocks()
             self.trade_stocks_done = True
+
 
         text_time = current_time.toString("hh:mm:ss")
         time_msg = "현재시간: " + text_time
@@ -161,32 +239,13 @@ class MyWindow(QMainWindow, form_class):
         self.statusbar.showMessage(state_msg + " | " + time_msg)
 
     def timeout2(self):
+        #if self.checkBox.isChecked():
         self.check_balance()
         self.check_chejan_balance()
 
-    # 주식 종목코드, 종목명 출력
-    def code_changed(self):
-        code = self.lineEdit.text()
-        name = self.kiwoom.get_master_code_name(code)
-        self.lineEdit_2.setText(name)
-
-    # 수동주문
-    def send_order(self):
-        order_type_lookup = {'신규매수': 1, '신규매도': 2, '매수취소': 3, '매도취소': 4}
-        hoga_lookup = {'지정가': "00", "시장가": "03"}
-
-        account = self.comboBox.currentText()
-        order_type = self.comboBox_2.currentText()
-        code = self.lineEdit.text()
-        hoga = self.comboBox_3.currentText()
-        num = self.spinBox.value()
-        price = self.spinBox_2.value()
-
-        self.kiwoom.send_order("send_order_req", "0101", account, order_type_lookup[order_type],
-                               code, num, price, hoga_lookup[hoga], "")
-
     def check_chejan_balance(self):
-
+        # SetInputValue(입력 데이터 설정)과 CommRqData(TR 요청)
+        # 최대 20개의 보유 종목 데이터 리턴 반복
         self.kiwoom.reset_opt10075_output()
         account_number = self.kiwoom.get_login_info("ACCNO")
         account_number = account_number.split(';')[0]
@@ -212,8 +271,6 @@ class MyWindow(QMainWindow, form_class):
         self.tableWidget_4.resizeRowsToContents()
 
     def check_balance(self):
-        # SetInputValue(입력 데이터 설정)과 CommRqData(TR 요청)
-        # 최대 20개의 보유 종목 데이터 리턴 반복
         self.kiwoom.reset_opw00018_output()
         account_number = self.kiwoom.get_login_info("ACCNO")
         account_number = account_number.split(';')[0]
@@ -224,7 +281,7 @@ class MyWindow(QMainWindow, form_class):
         while self.kiwoom.remained_data:
             time.sleep(0.2)
             self.kiwoom.set_input_value("계좌번호", account_number)
-            self.kiwoom.comm_rq_data("opw00018_req", "opw00018", 0, "2000")
+            self.kiwoom.comm_rq_data("opw00018_req", "opw00018", 2, "2000")
 
         # opw00001
         # 예수금 데이터 얻어오기
@@ -239,7 +296,7 @@ class MyWindow(QMainWindow, form_class):
 
         # 해당 칼럼에 값 추가
         for i in range(1, 6):
-            item = QTableWidgetItem(self.kiwoom.opw00018_output['single'][i - 1])
+            item = QTableWidgetItem(self.kiwoom.opw00018_output['single'][i-1])
             item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
             self.tableWidget.setItem(0, i, item)
 
@@ -256,8 +313,42 @@ class MyWindow(QMainWindow, form_class):
                 item = QTableWidgetItem(row[i])
                 item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
                 self.tableWidget_2.setItem(j, i, item)
-
         self.tableWidget_2.resizeRowsToContents()
+
+    # 종가와 시가를 받아오기 위한 함수
+    def get_ohlcv(self, code, start):
+        self.kiwoom.ohlcv = {'date': [], 'close': []}
+        self.kiwoom.final = {'close': []}
+        self.kiwoom.current = {'current': []}
+
+        self.kiwoom.set_input_value("종목코드", code)
+        self.kiwoom.set_input_value("기준일자", start)
+        self.kiwoom.set_input_value("수정주가구분", 1)
+        self.kiwoom.comm_rq_data("opt10081_req", "opt10081", 0, "0101")
+
+
+    def get_curclose(self):
+        true_close = []
+        true_current = []
+        code = []
+        today = datetime.datetime.today().strftime("%Y%m%d")
+        f = open("buy_list.txt", 'rt')
+        buy_list = f.readlines()
+
+        for row_data in buy_list:
+            split_row_data = row_data.split(';')
+            code.append(split_row_data[1])
+        # 현재 시가과 전날 종가를 받아옴
+        for i in range(len(code)):
+            print("code: ", code[i])
+            self.get_ohlcv(code[i], today)
+            true_close.append(self.kiwoom.final['close'])
+            true_current.append(self.kiwoom.current['current'])
+        print(true_close)
+
+        f.close()
+        return (true_close, true_current)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

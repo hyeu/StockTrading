@@ -3,10 +3,11 @@ from PyQt5.QtWidgets import *
 from PyQt5.QAxContainer import *
 from PyQt5.QtCore import *
 import time
+from pandas import DataFrame
 import pandas as pd
 import sqlite3
 
-TR_RED_TIME_INTERVAL = 0.2
+TR_REQ_TIME_INTERVAL = 0.2
 
 class Sig(QObject):
     sig = pyqtSignal()
@@ -26,7 +27,7 @@ class Kiwoom(QAxWidget):
     def signal_(self):
         self.sig.signal()
 
-    # OPEN API 객체 생성
+    # openAPI 사용을 위해선 COM 오브젝트 생성이 필요
     def _create_kiwoom_instance(self):
         self.setControl("KHOPENAPI.KHOpenAPICtrl.1")
 
@@ -34,24 +35,25 @@ class Kiwoom(QAxWidget):
     def _set_signal_slots(self):
         self.OnEventConnect.connect(self._event_connect)
         self.OnReceiveTrData.connect(self._receive_tr_data)
+        #self.OnReceiveRealData.connect(self._receive_real_data)
         self.OnReceiveChejanData.connect(self._receive_chejan_data)
-        self.OnReceiveRealData.connect(self._receive_real_data)
-        #self.OnReceiveRealCondition.connect(self._recevie_real.condition)
 
-    # 로그인
-    # 이벤트 루프 생성, OnEventConnect 이벤트 발생 때까지 종료하지 않은 상태
+    # 로그인 함수
     def comm_connect(self):
+        # CommConnect 함수를 dynamicCall 함수를 통해 호출
         self.dynamicCall("CommConnect()")
+        # 이벤트 루프(이벤트가 발생할 때까지 프로그램 종료되지 않음) / GUI형태로 만들지 않을 시 필요
         self.login_event_loop = QEventLoop()
+        # exec_메서드를 호출하여 생성
         self.login_event_loop.exec_()
 
     # OnEventConnect 이벤트 발생 하면 _event_connect 호출
     # comm_connect 호출 시 생성된 이벤트 루프 종료
     def _event_connect(self, err_code):
         if err_code == 0:
-            print("connected")
+            print('connected')
         else:
-            print("disconnected")
+            print('disconnected')
 
         self.login_event_loop.exit()
 
@@ -79,7 +81,7 @@ class Kiwoom(QAxWidget):
 
     # TR 입력 값을 서버통신 전에 입력
     def set_input_value(self, id, value):
-        self.dynamicCall("SetInputValue(QString, QString)", id, value)
+        self.dynamicCall("setInputValue(QString, QString)", id, value)
 
     # TR을 서버로 송신
     # 사용자 구분명, TR명, 조회:0/연속:2, 4개 화면번호
@@ -95,12 +97,12 @@ class Kiwoom(QAxWidget):
                                real_type, field_name, index, item_name)
         return ret.strip()
 
-    # 총 몇 개의 데이터가 왔는지 확인하기 위함
+        # 총 몇 개의 데이터가 왔는지 확인하기 위함
     def _get_repeat_cnt(self, trcode, rqname):
         ret = self.dynamicCall("GetRepeatCnt(QString, QString)", trcode, rqname)
         return ret
 
-        # 주식 주문에 대한 정보를 서버로 전송
+    # 주식 주문에 대한 정보를 서버로 전송
     def send_order(self, rqname, screen_no, acc_no, order_type, code, quantity, price, hoga, order_no):
         self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)",
                          [rqname, screen_no, acc_no, order_type, code, quantity, price, hoga, order_no])
@@ -115,21 +117,19 @@ class Kiwoom(QAxWidget):
         ret = self.dynamicCall("KOA_Functions(QString, QString)", "GetServerGubun", "")
         return ret
 
-
     # gubun: '0' 접수,체결 / '1' 잔고전달
     def _receive_chejan_data(self, gubun, item_cnt, fid_list):
-
         print(gubun)
-        cj_jumooncode = self.get_chejan_data(9203) #주문번호
-        cj_code = self.get_chejan_data(9001) #종목코드
-        cj_name = self.get_chejan_data(302) # 종목명
-        cj_vol = self.get_chejan_data(900) # 주문수량
-        cj_wprice = self.get_chejan_data(901) # 주문가격
-        cj_time = self.get_chejan_data(908) # 주문/체결 시간
-        cj_actual_vol = self.get_chejan_data(911) #체결량
-        cj_price = self.get_chejan_data(10) # 현재가, 체결가, 실시간 종가
+        cj_jumooncode = self.get_chejan_data(9203)  # 주문번호
+        cj_code = self.get_chejan_data(9001)  # 종목코드
+        cj_name = self.get_chejan_data(302)  # 종목명
+        cj_vol = self.get_chejan_data(900)  # 주문수량
+        cj_wprice = self.get_chejan_data(901)  # 주문가격
+        cj_time = self.get_chejan_data(908)  # 주문/체결 시간
+        cj_actual_vol = self.get_chejan_data(911)  # 체결량
+        cj_price = self.get_chejan_data(10)  # 현재가, 체결가, 실시간 종가
 
-        cj_data = [cj_jumooncode,cj_code, cj_name, cj_vol, cj_wprice, cj_time, cj_actual_vol, cj_price]
+        cj_data = [cj_jumooncode, cj_code, cj_name, cj_vol, cj_wprice, cj_time, cj_actual_vol, cj_price]
 
         print(cj_data)
         return cj_data
@@ -141,16 +141,16 @@ class Kiwoom(QAxWidget):
     def _receive_real_data(self, scode, real_type, real_data):
         if real_type == '주식체결':
             self.scode = scode
-            self.time = int(self.GetCommRealData(20)) # 체결시간
-            self.price = int(self.GetCommRealData(10)) # 현재가
+            self.time = int(self.GetCommRealData(20))  # 체결시간
+            self.price = int(self.GetCommRealData(10))  # 현재가
             if self.price < 0:
-                self.price = self.price*(-1)
-            self.vol = int(self.GetCommRealData(15)) #거래량
-            self.price_up_down = int(self.GetCommRealData(12)) #등락률
+                self.price = self.price * (-1)
+            self.vol = int(self.GetCommRealData(15))  # 거래량
+            self.price_up_down = int(self.GetCommRealData(12))  # 등락률
             self.hour = self.time / 10000
             self.min = self.time / 100 % 100
             self.sec = self.time % 100
-            self.realtime = self.hour*3600 + self.min*60 + self.sec
+            self.realtime = self.hour * 3600 + self.min * 60 + self.sec
             self.code_name = self.get_master_code_name(scode)
 
             data = [self.realtime, scode, self.code_name, self.price, self.vol, self.price_up_down, self.realtime]
@@ -161,18 +161,17 @@ class Kiwoom(QAxWidget):
     def _set_real_reg(self, screen_no, code, fid_list, real_type):
         print("SetRealReg")
         self.dynamicCall("SetRealReg(QString, QString, QString, QString)",
-                               screen_no, code, fid_list, real_type)
+                         screen_no, code, fid_list, real_type)
 
     # SetRealReg() 해제
     def _set_real_remove(self, screen_no, del_code):
         print("SetRealRemove")
-        self.dynamicCall("SetRealRemove(QString, QString)",
-                               screen_no, del_code)
+        self.dynamicCall("SetRealRemove(QString, QString)", screen_no, del_code)
 
     def _on_receive_msg(self, screen_no, rqname, trcode, msg):
         msg = self.dynnamicCall("OnResceiveMsg(")
 
-   # def _receive_real_condition(self, scode, event_type, condi_name, cond_index):
+    # def _receive_real_condition(self, scode, event_type, condi_name, cond_index):
     # 이벤트 발생 시 처리
     def _receive_tr_data(self, screen_no, rqname, trcode, record_name, next, unused1, unused2, unused3, unused4):
         self.orderNum = self._comm_get_data(trcode, "", rqname, 0, "주문번호")
@@ -192,10 +191,9 @@ class Kiwoom(QAxWidget):
         # 계좌 잔고 데이터
         elif rqname == "opw00018_req":
             self._opw00018(rqname, trcode)
-        #실시간 미체결 요청
+        # 실시간 미체결 요청
         elif rqname == "opt10075_req":
             self._opt10075(rqname, trcode)
-
 
         # comm_rq_data 호출 시 생성된 이벤트 루프 종료
         try:
@@ -235,19 +233,18 @@ class Kiwoom(QAxWidget):
         self.opt10075_output = {'no_che': [], 'che': []}
 
     def _opt10075(self, rqname, trcode):
-
         data_cnt = self._get_repeat_cnt(trcode, rqname)
         for i in range(data_cnt):
-            status = self._comm_get_data(trcode,"", rqname, i, "주문상태")
-            gubun = self._comm_get_data(trcode,"",rqname,i,"주문구분")
-            order_num = self._comm_get_data(trcode,"", rqname, i, "주문번호")
-            code = self._comm_get_data(trcode,"",rqname,i,"종목명")
+            status = self._comm_get_data(trcode, "", rqname, i, "주문상태")
+            gubun = self._comm_get_data(trcode, "", rqname, i, "주문구분")
+            order_num = self._comm_get_data(trcode, "", rqname, i, "주문번호")
+            code = self._comm_get_data(trcode, "", rqname, i, "종목명")
             price = self._comm_get_data(trcode, "", rqname, i, "체결가격")
-            vol = self._comm_get_data(trcode,"",rqname,i,"주문수량")
-            yet_vol =  self._comm_get_data(trcode,"",rqname,i,"미체결수량")
+            vol = self._comm_get_data(trcode, "", rqname, i, "주문수량")
+            yet_vol = self._comm_get_data(trcode, "", rqname, i, "미체결수량")
             time = self._comm_get_data(trcode, "", rqname, i, "시간")
 
-            #self.sig.signal()
+            # self.sig.signal()
             print(status, gubun, order_num, code, vol, yet_vol, time)
             self.opt10075_output['no_che'].append([status, gubun, order_num, code, vol, yet_vol, time])
 
@@ -260,7 +257,6 @@ class Kiwoom(QAxWidget):
     def _opt10081(self, rqname, trcode):
         # 데이터를 얻어오기 전 데이터 개수 받아오기
         data_cnt = self._get_repeat_cnt(trcode, rqname)
-
         # 반복문을 통해 데이터 하나씩 얻어오기
         for i in range(data_cnt):
             date = self._comm_get_data(trcode, "", rqname, i, "일자")
@@ -269,22 +265,25 @@ class Kiwoom(QAxWidget):
             low = self._comm_get_data(trcode, "", rqname, i, "저가")
             close = self._comm_get_data(trcode, "", rqname, i, "현재가")
             volume = self._comm_get_data(trcode, "", rqname, i, "거래량")
+            #time.sleep(0.2)
 
             self.ohlcv['date'].append(date)
-            self.ohlcv['open'].append(int(open))
-            self.ohlcv['high'].append(int(high))
-            self.ohlcv['low'].append(int(low))
+            #self.ohlcv['open'].append(int(open))
+            #self.ohlcv['high'].append(int(high))
+            #self.ohlcv['low'].append(int(low))
             self.ohlcv['close'].append(int(close))
-            self.ohlcv['volume'].append(int(volume))
+            #self.ohlcv['volume'].append(int(volume))
+        print("날짜: ", self.ohlcv['date'][1])
+        print("종가: ", self.ohlcv['close'][1])
+        self.final['close'].append(self.ohlcv['close'][1])
+        self.current['current'].append(self.ohlcv['close'][0])
 
-    # opw00018 데이터 변수에 저장
-    def reset_opw00018_output(self):
-        #self.sig.signal()
-        self.opw00018_output = {'single': [], 'multi': []}
+        #self.final_close.append(self.ohlcv['close'][1])
+            #print("date   open   high   low    close    volume")
+            #print(date, open, high, low, close, volume)
 
     # 잔고 및 보유종목 현황
     def _opw00018(self, rqname, trcode):
-        #single data
         total_purchase_price = self._comm_get_data(trcode, "", rqname, 0, "총매입금액")
         total_eval_price = self._comm_get_data(trcode, "", rqname, 0, "총평가금액")
         total_eval_profit_loss_price = self._comm_get_data(trcode, "", rqname, 0, "총평가손익금액")
@@ -294,8 +293,16 @@ class Kiwoom(QAxWidget):
         self.opw00018_output['single'].append(Kiwoom.change_format(total_purchase_price))
         self.opw00018_output['single'].append(Kiwoom.change_format(total_eval_price))
         self.opw00018_output['single'].append(Kiwoom.change_format(total_eval_profit_loss_price))
-        self.opw00018_output['single'].append(Kiwoom.change_format2(total_earning_rate))
+
+        total_earning_rate = Kiwoom.change_format2(total_earning_rate)
+
+        if self.get_server_gubun():
+            total_earning_rate = float(total_earning_rate) / 100
+            total_earning_rate = str(total_earning_rate)
+
+        self.opw00018_output['single'].append(total_earning_rate)
         self.opw00018_output['single'].append(Kiwoom.change_format(estimated_deposit))
+
 
         #multi data
         rows = self._get_repeat_cnt(trcode, rqname)
@@ -314,20 +321,24 @@ class Kiwoom(QAxWidget):
             eval_profit_loss_price = Kiwoom.change_format(eval_profit_loss_price)
             earning_rate = Kiwoom.change_format2(earning_rate)
             yesterday_price = Kiwoom.change_format(yesterday_price)
-            #price_up_down = Kiwoom.change_format(price_up_down)
-            #price_up_down = (float(current_price) - float(yesterday_price)) / float(yesterday_price) * 100
 
-            self.opw00018_output['multi'].append([name, quantity, purchase_price, current_price, eval_profit_loss_price,
-                                                  earning_rate])
+            self.opw00018_output['multi'].append([name, quantity, purchase_price, current_price,
+                                                  eval_profit_loss_price, earning_rate])
 
+    # opw00018 데이터 변수에 저장
+    def reset_opw00018_output(self):
+        self.opw00018_output = {'single': [], 'multi': []}
 
+    def store_fianl_close(self):
+        self.final_close = []
+        self.current_close = []
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     kiwoom = Kiwoom()
     kiwoom.comm_connect()
-    kiwoom.ohlcv = {'date' : [], 'open': [], 'high': [], 'low': [], 'close': [], 'volume': []}
+    # kiwoom.ohlcv = {'date' : [], 'open': [], 'high': [], 'low': [], 'close': [], 'volume': []}
 
     kiwoom.reset_opw00018_output()
     account_number = kiwoom.get_login_info("ACCNO")
