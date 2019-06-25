@@ -133,7 +133,7 @@ class MyWindow(QMainWindow, form_class):
                     for i, row_data in enumerate(buy_list):
                         buy_list[i] = buy_list[i].replace("매수전", "주문완료")
 
-			print("lr: ", float(lr))
+	    print("lr: ", float(lr))
             print("pr: ", float(pr))
 
             code_name = self.kiwoom.opw00018_output['compare'][i][0]
