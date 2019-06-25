@@ -313,21 +313,19 @@ class Kiwoom(QAxWidget):
             current_price = self._comm_get_data(trcode, "", rqname, i, "현재가")
             eval_profit_loss_price = self._comm_get_data(trcode, "", rqname, i, "평가손익")
             earning_rate = self._comm_get_data(trcode, "", rqname, i, "수익률(%)")
-            yesterday_price = self._comm_get_data(trcode, "", rqname, i, "전일종가")
 
             quantity = Kiwoom.change_format(quantity)
             purchase_price = Kiwoom.change_format(purchase_price)
             current_price = Kiwoom.change_format(current_price)
             eval_profit_loss_price = Kiwoom.change_format(eval_profit_loss_price)
             earning_rate = Kiwoom.change_format2(earning_rate)
-            yesterday_price = Kiwoom.change_format(yesterday_price)
 
             self.opw00018_output['multi'].append([name, quantity, purchase_price, current_price,
                                                   eval_profit_loss_price, earning_rate])
-
+			self.opw00018_output['compare'].append([name, quantity, current_price, purchase_price, earning_rate])
     # opw00018 데이터 변수에 저장
     def reset_opw00018_output(self):
-        self.opw00018_output = {'single': [], 'multi': []}
+        self.opw00018_output = {'single': [], 'multi': [], 'compare': []}
 
     def store_fianl_close(self):
         self.final_close = []
