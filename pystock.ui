@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1352</width>
-    <height>798</height>
+    <width>1559</width>
+    <height>1332</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <rect>
       <x>440</x>
       <y>20</y>
-      <width>761</width>
+      <width>1091</width>
       <height>451</height>
      </rect>
     </property>
@@ -31,7 +31,7 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>711</width>
+       <width>1071</width>
        <height>131</height>
       </rect>
      </property>
@@ -75,7 +75,7 @@
       <rect>
        <x>10</x>
        <y>170</y>
-       <width>711</width>
+       <width>1071</width>
        <height>261</height>
       </rect>
      </property>
@@ -121,7 +121,7 @@
      <rect>
       <x>430</x>
       <y>480</y>
-      <width>911</width>
+      <width>1101</width>
       <height>281</height>
      </rect>
     </property>
@@ -133,7 +133,7 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>891</width>
+       <width>1081</width>
        <height>241</height>
       </rect>
      </property>
@@ -187,9 +187,9 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>80</y>
-      <width>411</width>
+      <x>440</x>
+      <y>770</y>
+      <width>1091</width>
       <height>441</height>
      </rect>
     </property>
@@ -201,7 +201,7 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>391</width>
+       <width>1071</width>
        <height>401</height>
       </rect>
      </property>
@@ -264,19 +264,6 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLabel" name="label">
-     <property name="geometry">
-      <rect>
-       <x>40</x>
-       <y>30</y>
-       <width>31</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>계좌</string>
-     </property>
-    </widget>
    </widget>
    <zorder>groupBox_4</zorder>
    <zorder>groupBox_2</zorder>
@@ -288,8 +275,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1352</width>
-     <height>21</height>
+     <width>1559</width>
+     <height>38</height>
     </rect>
    </property>
   </widget>
