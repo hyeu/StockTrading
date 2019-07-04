@@ -3,8 +3,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QAxContainer import *
 from PyQt5.QtCore import *
 import time
-from pandas import DataFrame
-import pandas as pd
 import sqlite3
 
 TR_REQ_TIME_INTERVAL = 0.2
@@ -268,19 +266,13 @@ class Kiwoom(QAxWidget):
             #time.sleep(0.2)
 
             self.ohlcv['date'].append(date)
-            #self.ohlcv['open'].append(int(open))
-            #self.ohlcv['high'].append(int(high))
-            #self.ohlcv['low'].append(int(low))
             self.ohlcv['close'].append(int(close))
-            #self.ohlcv['volume'].append(int(volume))
+
         print("날짜: ", self.ohlcv['date'][1])
         print("종가: ", self.ohlcv['close'][1])
         self.final['close'].append(self.ohlcv['close'][1])
         self.current['current'].append(self.ohlcv['close'][0])
 
-        #self.final_close.append(self.ohlcv['close'][1])
-            #print("date   open   high   low    close    volume")
-            #print(date, open, high, low, close, volume)
 
     # 잔고 및 보유종목 현황
     def _opw00018(self, rqname, trcode):
@@ -323,6 +315,7 @@ class Kiwoom(QAxWidget):
             self.opw00018_output['multi'].append([name, quantity, purchase_price, current_price,
                                                   eval_profit_loss_price, earning_rate])
 			self.opw00018_output['compare'].append([name, quantity, current_price, purchase_price, earning_rate])
+    
     # opw00018 데이터 변수에 저장
     def reset_opw00018_output(self):
         self.opw00018_output = {'single': [], 'multi': [], 'compare': []}
@@ -344,4 +337,4 @@ if __name__ == "__main__":
 
     kiwoom.set_input_value("계좌번호", account_number)
 
-    kiwoom.comm_rq_data("opt10075_req", "opt10075", 0, "2000")
+    #kiwoom.comm_rq_data("opt10075_req", "opt10075", 0, "2000")
