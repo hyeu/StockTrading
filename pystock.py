@@ -4,9 +4,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic
 from Kiwoom import *
-from pandas import DataFrame
 import time
-import pdb
+
 
 TRADING_TIME = [[[9, 5], [15, 19]]]
 
@@ -132,21 +131,26 @@ class MyWindow(QMainWindow, form_class):
                 if self.kiwoom.orderNum:
                     for i, row_data in enumerate(buy_list):
                         buy_list[i] = buy_list[i].replace("매수전", "주문완료")
+                        
+            if split_row_data[-1].rstrip() == '매도전':
+                self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, price, hoga_lookup[hoga], "")
+                # 주문이 들어갔을 때만 주문 완료로 바꿈
+                if self.kiwoom.orderNum:
+                    for i, row_data in enumerate(buy_list):
+                        sell_list[i] = sell_list[i].replace("매도전", "판매완료")
 
-	    print("lr: ", float(lr))
-            print("pr: ", float(pr))
+        num_data = len(self.kiwoom.opw00018_output['multi'])
 
+        for i in range(num_data):
             code_name = self.kiwoom.opw00018_output['compare'][i][0]
-            compare = float(self.kiwoom.opw00018_output['compare'][i][-1])
             current_price = self.kiwoom.opw00018_output['compare'][i][2]
             purchase_price = self.kiwoom.opw00018_output['compare'][i][3]
-            print("종목이름: %s, 수익률: %f, 현재가격: %s" %(code_name, compare, current_price))
-
+            print("종목이름: %s, 현재가격: %s, 구입가격: %s" % (code_name, current_price, purchase_price))
 
             location = 0
-            while(location < len(current_price)):
+            while (location < len(current_price)):
                 if current_price[location] == ',':
-                    current_price = current_price[:location] + current_price[location+1::]
+                    current_price = current_price[:location] + current_price[location + 1::]
                 location += 1
             current_price = int(current_price)
 
@@ -156,64 +160,49 @@ class MyWindow(QMainWindow, form_class):
                     purchase_price = purchase_price[:location2] + purchase_price[location2 + 1::]
                 location2 += 1
 
-            pr_price = float(pr)*int(purchase_price)
-            lr_price = float(lr)*float(purchase_price)
-            pr_price = int(pr_price)
-            lr_price = int(lr_price)
-            print("profit rate price: ", pr_price)
-            print("loss rate price: ", lr_price)
-            print("current price: ", current_price)
+            for j in range(len(auto_buy)):
+                split_row_data = auto_buy[i].split(';')
+                code = split_row_data[1]
+                hoga = split_row_data[2]
+                num = split_row_data[3]
+                pr = split_row_data[6]
+                lr = split_row_data[7]
+
+                if code_name == code:
+                    print("code name: %s, lr: %f, pr: %f" %(code, float(lr), float(pr)))
+                    pr_price = float(pr) * int(purchase_price)
+                    print("pr_price: %f * %d = %d" %(float(pr), int(purchase_price), int(pr_price)))
+                    lr_price = float(lr) * float(purchase_price)
+                    pr_price = int(pr_price)
+                    lr_price = int(lr_price)
+                    print("profit rate price: ", pr_price)
+                    print("loss rate price: ", lr_price)
+                    print("current price: ", current_price)
+
+                    if split_row_data[-1].rstrip() == '주문완료' and self.is_trading_time() == True:
+
+                        if (current_price >= pr_price):
+                            self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
+                                           hoga_lookup[hoga], "")
+                            print("pr 주문완료")
+                            print(account, code, num, current_price, hoga_lookup[hoga])
+                            buy_list[i] = buy_list[i].replace("주문완료", "판매완료")
+                            break
 
 
-            if split_row_data[-1].rstrip() == '주문완료' and  self.is_trading_time() == True:
+                    elif current_price <= lr_price:
+                        self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
+                                           hoga_lookup[hoga], "")
+                        if self.kiwoom.orderNum:
+                            print("lr 주문완료")
+                            print(account, code, num, current_price, hoga_lookup[hoga])
+                            buy_list[i] = buy_list[i].replace("주문완료", "판매완료")
 
-                if(current_price >= pr_price):
-                    self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
-                                       hoga_lookup[hoga], "")
-                    print("pr 주문완료")
-                    print(account, code, num, current_price, hoga_lookup[hoga])
-                    buy_list[i] = buy_list[i].replace("주문완료", "판매완료")
 
-
-                elif current_price <= lr_price:
-                    self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
-                                       hoga_lookup[hoga], "")
-                    if self.kiwoom.orderNum:
-                        print("lr 주문완료")
-                        print(account, code, num, current_price, hoga_lookup[hoga])
-                        buy_list[i] = buy_list[i].replace("주문완료", "판매완료")
-
-        # sell list
-        for row_data in sell_list:
-            split_row_data = row_data.split(';')
-            code = split_row_data[1]
-            hoga = split_row_data[2]
-            num = split_row_data[3]
-            price = split_row_data[4]
-            bdr = split_row_data[5]
-            pr = split_row_data[6]
-            lr = split_row_data[7]
-
-            if split_row_data[-1].rstrip() == '매도전':
-                self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, price, hoga_lookup[hoga], "")
-                # 주문이 들어갔을 때만 주문 완료로 바꿈
-                if self.kiwoom.orderNum:
-                    for i, row_data in enumerate(buy_list):
-                        sell_list[i] = sell_list[i].replace("매도전", "주문완료")
 
         # file update
         f = open("buy_list.txt", 'wt')
         for row_data in buy_list:
-            f.write(row_data)
-        f.close()
-
-        # sell list
-        """for i, row_data in enumerate(sell_list):
-            sell_list[i] = sell_list[i].replace("매도전", "주문완료")"""
-
-        # file update
-        f = open("sell_list.txt", 'wt')
-        for row_data in sell_list:
             f.write(row_data)
         f.close()
 
