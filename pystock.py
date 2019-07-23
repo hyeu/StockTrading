@@ -103,8 +103,8 @@ class MyWindow(QMainWindow, form_class):
         
         # hd 수정
         current_time = datetime.datetime.now()
-        correct_time1 = current_time.replace(hour=11, minute=3, second=0, microsecond=0)
-        correct_time2 = current_time.replace(hour=11, minute=4, second=0, microsecond=0)
+        correct_time1 = current_time.replace(hour=15, minute=20, second=0, microsecond=0)
+        correct_time2 = current_time.replace(hour=15, minute=21, second=0, microsecond=0)
         if correct_time1 <= current_time and current_time <= correct_time2:
             for i in range(len(auto_buy)):
                 split_row_data = auto_buy[i].split(';')
