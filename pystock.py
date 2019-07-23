@@ -100,6 +100,19 @@ class MyWindow(QMainWindow, form_class):
         close_rate, current_rate = self.get_curclose()
         # print("rate: ", rate[2][0])
         print(current_rate)
+        
+        # hd 수정
+        current_time = datetime.datetime.now()
+        correct_time1 = current_time.replace(hour=11, minute=3, second=0, microsecond=0)
+        correct_time2 = current_time.replace(hour=11, minute=4, second=0, microsecond=0)
+        if correct_time1 <= current_time and current_time <= correct_time2:
+            for i in range(len(auto_buy)):
+                split_row_data = auto_buy[i].split(';')
+                code = split_row_data[0]
+                hd = split_row_data[7]
+                if int(hd) > 0:
+                    hd = int(hd) - 1
+        
         # buy list
         for i in range(len(auto_buy)):
             split_row_data = auto_buy[i].split(';')
@@ -177,11 +190,14 @@ class MyWindow(QMainWindow, form_class):
 
                 if code_name == code_new:
                     print("code name: %s, lr: %f, pr: %f" % (code, float(lr), float(pr)))
+                    
                     pr_price = float(pr) * int(purchase_price)
                     print("pr_price: %f * %d = %d" % (float(pr), int(purchase_price), int(pr_price)))
+                    
                     lr_price = float(lr) * float(purchase_price)
                     pr_price = int(pr_price)
                     lr_price = int(lr_price)
+                    
                     print("profit rate price: ", pr_price)
                     print("loss rate price: ", lr_price)
                     print("current price: ", current_price)
@@ -197,13 +213,25 @@ class MyWindow(QMainWindow, form_class):
                             break
 
 
-                    elif current_price <= lr_price:
-                        self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
+                        elif current_price <= lr_price:
+                            self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
                                                hoga_lookup[hoga], "")
-                        if self.kiwoom.orderNum:
-                            print("lr 주문완료")
-                            print(account, code, num, current_price, hoga_lookup[hoga])
-                            buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
+                            if self.kiwoom.orderNum:
+                                print("lr 주문완료")
+                                print(account, code, num, current_price, hoga_lookup[hoga])
+                                buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
+                        
+                        due_time = current_time.replace(hour=15, minute=10, second=0, microsecond=0)
+
+                        if due_time < current_time and hd == "0":
+                            #hoga = "시장가"
+                            self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price, hoga_lookup[hoga], "")
+                            if self.kiwoom.orderNum:
+                                for j, row_data in enumerate(buy_list):
+                                    buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
+                            print("hd 만료, 시장가 판매")
+                            
+                    break
 
         # file update
         f = open("buy_list.txt", 'wt')
