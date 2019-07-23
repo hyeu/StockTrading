@@ -112,6 +112,7 @@ class MyWindow(QMainWindow, form_class):
                 hd = split_row_data[7]
                 if int(hd) > 0:
                     hd = int(hd) - 1
+                    buy_list[i] = buy_list[i].replace(split_row_data[7], str(hd))
         
         # buy list
         for i in range(len(auto_buy)):
