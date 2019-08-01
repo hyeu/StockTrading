@@ -273,10 +273,24 @@
      </property>
     </widget>
    </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>530</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>파일 저장</string>
+    </property>
+   </widget>
    <zorder>groupBox_4</zorder>
    <zorder>groupBox_2</zorder>
    <zorder>groupBox_3</zorder>
    <zorder>groupBox</zorder>
+   <zorder>pushButton</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
