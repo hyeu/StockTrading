@@ -120,7 +120,7 @@ class MyWindow(QMainWindow, form_class):
         
         current_time = datetime.datetime.now()
         correct_time1 = current_time.replace(hour=15, minute=20, second=0, microsecond=0)
-        correct_time2 = current_time.replace(hour=15, minute=21, second=0, microsecond=0)
+        correct_time2 = current_time.replace(hour=15, minute=25, second=0, microsecond=0)
         print(change_date)
         if correct_time1 <= current_time and current_time <= correct_time2 and change_date == True:
             for i in range(len(auto_buy)):
@@ -129,7 +129,9 @@ class MyWindow(QMainWindow, form_class):
                 hd = split_row_data[-2]
                 if int(hd) > 0:
                     hd = int(hd) - 1
-                    buy_list[i] = buy_list[i].replace(split_row_data[-2], str(hd))
+                    print(hd)
+                    for i, row_data in enumerate(buy_list):
+                        buy_list[i] = buy_list[i].replace(split_row_data[-2], str(hd))
             change_date = False
         if current_time <= correct_time1 and change_date == False:
             change_date = True
