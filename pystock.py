@@ -30,10 +30,6 @@ class MyWindow(QMainWindow, form_class):
         self.timer.start(1000)
         self.timer.timeout.connect(self.timeout)
         self.get_curclose()
-        # 주문 들어가는 부분
-        self.timer3 = QTimer(self)
-        self.timer3.start(1000 * 10)
-        self.timer3.timeout.connect(self.timeout3)
 
         # Timer2 실시간 조회 체크박스 체크하면 10초에 한 번씩 데이터 자동 갱신
         self.timer2 = QTimer(self)
@@ -53,6 +49,11 @@ class MyWindow(QMainWindow, form_class):
         # self.kiwoom.OnReceiveRealData.connect(self.kiwoom._receive_real_data)
         self.check_chejan_balance()
         # self.save_final_stock()
+        
+        # 주문 들어가는 부분
+        self.timer3 = QTimer(self)
+        self.timer3.start(1000 * 10)
+        self.timer3.timeout.connect(self.timeout3)
 
     # 버튼으로 파일 저장
     def save_ongoing(self):
