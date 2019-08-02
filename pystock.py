@@ -228,21 +228,24 @@ class MyWindow(QMainWindow, form_class):
                                                    hoga_lookup[hoga], "")
                             print("pr 주문완료")
                             print(account, code, num, current_price, hoga_lookup[hoga])
-                            buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
+                            if self.kiwoom.orderNum:
+                                for j, row_data in enumerate(buy_list):
+                                    buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
                             break
 
 
-                    elif current_price <= lr_price:
-                        self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
+                        elif current_price <= lr_price:
+                            self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
                                                hoga_lookup[hoga], "")
-                        if self.kiwoom.orderNum:
-                            print("lr 주문완료")
-                            print(account, code, num, current_price, hoga_lookup[hoga])
-                            buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
+                            if self.kiwoom.orderNum:
+                                print("lr 주문완료")
+                                print(account, code, num, current_price, hoga_lookup[hoga])
+                                for j, row_data in enumerate(buy_list):
+                                    buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
                             
                     due_time = current_time.replace(hour=15, minute=10, second=0, microsecond=0)
 
-                    if due_time < current_time and hd == "0":
+                    if due_time < current_time and hd == "0" and split_row_data[-1].rstrip() == '주문완료':
                         # hoga = "시장가"
                         self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
                                                    hoga_lookup[hoga], "")
