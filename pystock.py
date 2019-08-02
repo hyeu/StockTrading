@@ -11,6 +11,8 @@ TRADING_TIME = [[[9, 0], [15, 20]]]
 
 form_class = uic.loadUiType("pytrader.ui")[0]
 
+change_date = False
+
 
 class MyWindow(QMainWindow, form_class):
     def __init__(self):
@@ -112,6 +114,26 @@ class MyWindow(QMainWindow, form_class):
         # print("rate: ", rate[2][0])
         #print(current_rate)
         # buy list
+        
+        global change_date
+        
+        current_time = datetime.datetime.now()
+        correct_time1 = current_time.replace(hour=15, minute=20, second=0, microsecond=0)
+        correct_time2 = current_time.replace(hour=15, minute=21, second=0, microsecond=0)
+        print(change_date)
+        if correct_time1 <= current_time and current_time <= correct_time2 and change_date == True:
+            for i in range(len(auto_buy)):
+                split_row_data = auto_buy[i].split(';')
+                code = split_row_data[0]
+                hd = split_row_data[-2]
+                if int(hd) > 0:
+                    hd = int(hd) - 1
+                    buy_list[i] = buy_list[i].replace(split_row_data[-2], str(hd))
+            change_date = False
+        if current_time <= correct_time1 and change_date == False:
+            change_date = True
+        
+        
         for i in range(len(auto_buy)):
             split_row_data = auto_buy[i].split(';')
             code = split_row_data[0]
@@ -215,6 +237,17 @@ class MyWindow(QMainWindow, form_class):
                             print("lr 주문완료")
                             print(account, code, num, current_price, hoga_lookup[hoga])
                             buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
+                            
+                    due_time = current_time.replace(hour=15, minute=10, second=0, microsecond=0)
+
+                    if due_time < current_time and hd == "0":
+                        # hoga = "시장가"
+                        self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
+                                                   hoga_lookup[hoga], "")
+                        if self.kiwoom.orderNum:
+                            for j, row_data in enumerate(buy_list):
+                                buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
+                        print("hd 만료, 시장가 판매")
 
         # file update
         f = open("buy_list.txt", 'wt')
