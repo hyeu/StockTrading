@@ -207,6 +207,7 @@ class MyWindow(QMainWindow, form_class):
                 num = split_row_data[2]
                 pr = split_row_data[5]
                 lr = split_row_data[6]
+                hd = split_row_data[-2]
                 code_new = self.kiwoom.get_master_code_name(code)
 
                 if code_name == code_new:
