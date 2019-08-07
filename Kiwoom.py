@@ -313,6 +313,7 @@ class Kiwoom(QAxWidget):
             earning_rate = Kiwoom.change_format2(earning_rate)
 
             self.opw00018_output['multi'].append([name, quantity, purchase_price, current_price,
+						  current_price, current_price,
                                                   eval_profit_loss_price, earning_rate])
 			self.opw00018_output['compare'].append([name, quantity, current_price, purchase_price, earning_rate])
     
