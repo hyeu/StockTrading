@@ -75,7 +75,7 @@
       <rect>
        <x>10</x>
        <y>170</y>
-       <width>711</width>
+       <width>881</width>
        <height>261</height>
       </rect>
      </property>
@@ -83,10 +83,22 @@
       <property name="text">
        <string>종목명</string>
       </property>
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
      </column>
      <column>
       <property name="text">
        <string>보유량</string>
+      </property>
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
       </property>
      </column>
      <column>
@@ -101,17 +113,52 @@
      </column>
      <column>
       <property name="text">
+       <string>LR</string>
+      </property>
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="foreground">
+       <brush brushstyle="SolidPattern">
+        <color alpha="255">
+         <red>255</red>
+         <green>0</green>
+         <blue>0</blue>
+        </color>
+       </brush>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>PR</string>
+      </property>
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="foreground">
+       <brush brushstyle="SolidPattern">
+        <color alpha="255">
+         <red>0</red>
+         <green>0</green>
+         <blue>255</blue>
+        </color>
+       </brush>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>평가손익</string>
       </property>
      </column>
      <column>
       <property name="text">
        <string>수익률(%)</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>등락률</string>
       </property>
      </column>
     </widget>
