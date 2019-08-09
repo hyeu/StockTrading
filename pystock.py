@@ -7,7 +7,7 @@ import time
 
 TRADING_TIME = [[[9, 0], [15, 20]]]
 
-form_class = uic.loadUiType("pytrader.ui")[0]
+form_class = uic.loadUiType("pystock.ui")[0]
 
 change_date = False
 pr_list = {}
@@ -29,19 +29,15 @@ class MyWindow(QMainWindow, form_class):
         self.timer = QTimer(self)
         self.timer.start(1000)
         self.timer.timeout.connect(self.timeout)
-        self.get_curclose()
+        #self.get_curclose()
 
-        # Timer2 실시간 조회 체크박스 체크하면 10초에 한 번씩 데이터 자동 갱신
-        self.timer2 = QTimer(self)
-        self.timer2.start(1000 * 10)
-        self.timer2.timeout.connect(self.timeout2)
         # 선정 종목 리스트
         self.load_buy_sell_list()
 
         accouns_num = int(self.kiwoom.get_login_info("ACCOUNT_CNT"))
         accounts = self.kiwoom.get_login_info("ACCNO")
-
         accounts_list = accounts.split(';')[0:accouns_num]
+
         self.comboBox.addItems(accounts_list)
         self.exe_save = 0
         self.pushButton.clicked.connect(self.save_ongoing)
@@ -49,11 +45,16 @@ class MyWindow(QMainWindow, form_class):
         # self.kiwoom.OnReceiveRealData.connect(self.kiwoom._receive_real_data)
         self.check_chejan_balance()
         # self.save_final_stock()
-        
+
         # 주문 들어가는 부분
         self.timer3 = QTimer(self)
-        self.timer3.start(1000 * 10)
+        self.timer3.start(1000 * 15)
         self.timer3.timeout.connect(self.timeout3)
+
+        # Timer2 실시간 조회 체크박스 체크하면 10초에 한 번씩 데이터 자동 갱신
+        self.timer2 = QTimer(self)
+        self.timer2.start(1000 * 10)
+        self.timer2.timeout.connect(self.timeout2)
 
     # 버튼으로 파일 저장
     def save_ongoing(self):
@@ -94,6 +95,7 @@ class MyWindow(QMainWindow, form_class):
     # 자동 주문
     def trade_stocks(self):
         # self.check_balance()
+        self.get_curclose()
         auto_buy = []
         hoga_lookup = {'지정가': "00", '시장가': "03"}
         
@@ -169,8 +171,10 @@ class MyWindow(QMainWindow, form_class):
                                        hoga_lookup[hoga], "")
                 # 주문이 들어갔을 때만 주문 완료로 바꿈
                 if self.kiwoom.orderNum:
-                    for i, row_data in enumerate(buy_list):
-                        buy_list[i] = buy_list[i].replace("매수전", "주문완료")
+                    pass
+                    #for i, row_data in enumerate(buy_list):
+                print("저장 i", i)
+                buy_list[i] = buy_list[i].replace("매수전", "주문완료")
             elif split_row_data[-1].rstrip() == '매수전' and self.is_trading_time() == False:
                 self.kiwoom.send_order("send_order_req", "0101", account, 1, code, num, price, hoga_lookup[hoga], "")
                 # 주문이 들어갔을 때만 주문 완료로 바꿈
@@ -227,8 +231,8 @@ class MyWindow(QMainWindow, form_class):
                     self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
                                            hoga_lookup[hoga], "")
                     if self.kiwoom.orderNum:
-                        for j, row_data in enumerate(buy_list):
-                            buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
+                        pass
+                    buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
                     print("hd 만료, 시장가 판매")
 
                 if code_name == code_new:
@@ -250,8 +254,8 @@ class MyWindow(QMainWindow, form_class):
                             print("pr 주문완료")
                             print(account, code, num, current_price, hoga_lookup[hoga])
                             if self.kiwoom.orderNum:
-                                for j, row_data in enumerate(buy_list):
-                                    buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
+                                pass
+                            buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
                             break
 
 
@@ -261,8 +265,7 @@ class MyWindow(QMainWindow, form_class):
                             if self.kiwoom.orderNum:
                                 print("lr 주문완료")
                                 print(account, code, num, current_price, hoga_lookup[hoga])
-                                for j, row_data in enumerate(buy_list):
-                                    buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
+                                buy_list[j] = buy_list[j].replace("주문완료", "판매완료")
         print(lr_list)
         print(pr_list)
 
