@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 from PyQt5 import uic
 from Kiwoom import *
 import time
+import os
 
 TRADING_TIME = [[[9, 0], [15, 20]]]
 
@@ -24,12 +25,17 @@ class MyWindow(QMainWindow, form_class):
         self.kiwoom = Kiwoom()
         self.kiwoom.comm_connect()
 
-        #self.get_curclose()
+        fname = "ongoing_list.txt"
+        if not os.path.isfile(fname):
+            f = open(fname, 'wt')
+            f.close()
+
+        # self.get_curclose()
         self.currentTime = datetime.datetime.now()
         self.timer = QTimer(self)
         self.timer.start(1000)
         self.timer.timeout.connect(self.timeout)
-        #self.get_curclose()
+        # self.get_curclose()
 
         # 선정 종목 리스트
         self.load_buy_sell_list()
@@ -98,7 +104,7 @@ class MyWindow(QMainWindow, form_class):
         self.get_curclose()
         auto_buy = []
         hoga_lookup = {'지정가': "00", '시장가': "03"}
-        
+
         global lr_list
         global pr_list
 
@@ -116,13 +122,13 @@ class MyWindow(QMainWindow, form_class):
             pass
 
         account = self.comboBox.currentText()
-        #close_rate, current_rate = self.get_curclose()
+        # close_rate, current_rate = self.get_curclose()
         # print("rate: ", rate[2][0])
-        #print(current_rate)
+        # print(current_rate)
         # buy list
-        
+
         global change_date
-        
+
         current_time = datetime.datetime.now()
         correct_time1 = current_time.replace(hour=15, minute=15, second=0, microsecond=0)
         correct_time2 = current_time.replace(hour=15, minute=30, second=0, microsecond=0)
@@ -139,16 +145,15 @@ class MyWindow(QMainWindow, form_class):
                         buy_list[i] = buy_list[i].replace(split_row_data[-2], str(hd))
                         print(buy_list[i])
             change_date = False
-            
+
             f = open("buy_list.txt", 'wt')
             for row_data in buy_list:
                 print(row_data)
                 f.write(row_data)
-                
+
         if current_time <= correct_time1 and change_date == False:
             change_date = True
-        
-        
+
         for i in range(len(auto_buy)):
             split_row_data = auto_buy[i].split(';')
             code = split_row_data[0]
@@ -172,7 +177,7 @@ class MyWindow(QMainWindow, form_class):
                 # 주문이 들어갔을 때만 주문 완료로 바꿈
                 if self.kiwoom.orderNum:
                     pass
-                    #for i, row_data in enumerate(buy_list):
+                    # for i, row_data in enumerate(buy_list):
                 print("저장 i", i)
                 buy_list[i] = buy_list[i].replace("매수전", "주문완료")
             elif split_row_data[-1].rstrip() == '매수전' and self.is_trading_time() == False:
@@ -223,7 +228,7 @@ class MyWindow(QMainWindow, form_class):
                 lr = split_row_data[6]
                 hd = split_row_data[-2]
                 code_new = self.kiwoom.get_master_code_name(code)
-                
+
                 due_time = current_time.replace(hour=15, minute=10, second=0, microsecond=0)
 
                 if due_time < current_time and hd == "0" and split_row_data[-1].rstrip() == '주문완료':
@@ -261,7 +266,7 @@ class MyWindow(QMainWindow, form_class):
 
                         elif current_price <= lr_price:
                             self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
-                                               hoga_lookup[hoga], "")
+                                                   hoga_lookup[hoga], "")
                             if self.kiwoom.orderNum:
                                 print("lr 주문완료")
                                 print(account, code, num, current_price, hoga_lookup[hoga])
@@ -355,6 +360,7 @@ class MyWindow(QMainWindow, form_class):
         # if self.checkBox.isChecked():
         self.check_balance()
         self.check_chejan_balance()
+        self.load_buy_sell_list()
 
     def check_chejan_balance(self):
         buy_list = []
@@ -393,7 +399,7 @@ class MyWindow(QMainWindow, form_class):
             time.sleep(0.2)
             self.kiwoom.set_input_value("계좌번호", account_number)
             self.kiwoom.comm_rq_data("opt10075_req", "opt10075", 0, "2000")
-            #if self.is_trading_time() == False:
+            # if self.is_trading_time() == False:
             #    break
 
         item_count = len(self.kiwoom.opt10075_output['no_che'])
@@ -405,22 +411,24 @@ class MyWindow(QMainWindow, form_class):
                 item = QTableWidgetItem(row[i])
                 item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
                 self.tableWidget_4.setItem(j, i, item)
-                if self.is_end_time() == True or self.is_trading_time()==False or self.exe_save == 1:
+                if self.is_end_time() == True or self.is_trading_time() == False or self.exe_save == 1:
                     if row[0] == '체결':
-                        #print(self.kiwoom.opt10075_output['no_che'][j])
+                        # print(self.kiwoom.opt10075_output['no_che'][j])
                         if row[1] == '+매수':
-                        #if row[1] == '-매도':
-                            for l in range(0, j+1):
-                                if self.kiwoom.opt10075_output['no_che'][l][3] == self.kiwoom.opt10075_output['no_che'][j][3]:
-                                    #print("l-{0} {1}".format(l, self.kiwoom.opt10075_output['no_che'][l]))
-                                    #print("j-{0} {1}".format(j, self.kiwoom.opt10075_output['no_che'][j]))
+                            # if row[1] == '-매도':
+                            for l in range(0, j + 1):
+                                if self.kiwoom.opt10075_output['no_che'][l][3] == \
+                                        self.kiwoom.opt10075_output['no_che'][j][3]:
+                                    # print("l-{0} {1}".format(l, self.kiwoom.opt10075_output['no_che'][l]))
+                                    # print("j-{0} {1}".format(j, self.kiwoom.opt10075_output['no_che'][j]))
                                     if not self.kiwoom.opt10075_output['no_che'][l][1] == '-매도':
                                         for k in range(len(buy_list)):
-                                            if int(self.num_name[self.kiwoom.opt10075_output['no_che'][j][3]]) == int(name[k]):
+                                            if int(self.num_name[self.kiwoom.opt10075_output['no_che'][j][3]]) == int(
+                                                    name[k]):
                                                 buy_list2.append(buy_list[k])
-                                #print(self.kiwoom.opt10075_output['no_che'][j][3])
-                                #print("l - %d, j - %d" %(l, j))
-                                #print("확인용", self.kiwoom.opt10075_output['no_che'][l])
+                                # print(self.kiwoom.opt10075_output['no_che'][j][3])
+                                # print("l - %d, j - %d" %(l, j))
+                                # print("확인용", self.kiwoom.opt10075_output['no_che'][l])
                             """for k in range(len(buy_list)):
                                 if int(self.num_name[row[3]]) == int(name[k]):
                                     #print(k)
@@ -530,7 +538,7 @@ class MyWindow(QMainWindow, form_class):
         print(self.true_close)
 
         f.close()
-        #return (true_close, true_current)
+        # return (true_close, true_current)
 
 
 if __name__ == "__main__":
