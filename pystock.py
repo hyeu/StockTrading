@@ -30,6 +30,9 @@ class MyWindow(QMainWindow, form_class):
             f = open(fname, 'wt')
             f.close()
 
+        self.true_close = self.get_close()
+        print("true close", self.true_close)
+
         # self.get_curclose()
         self.currentTime = datetime.datetime.now()
         self.timer = QTimer(self)
@@ -54,13 +57,13 @@ class MyWindow(QMainWindow, form_class):
 
         # 주문 들어가는 부분
         self.timer3 = QTimer(self)
-        self.timer3.start(1000 * 15)
+        self.timer3.start(1000 * 10)
         self.timer3.timeout.connect(self.timeout3)
 
         # Timer2 실시간 조회 체크박스 체크하면 10초에 한 번씩 데이터 자동 갱신
-        self.timer2 = QTimer(self)
-        self.timer2.start(1000 * 10)
-        self.timer2.timeout.connect(self.timeout2)
+        """self.timer2 = QTimer(self)
+        self.timer2.start(1000 * 25)
+        self.timer2.timeout.connect(self.timeout2)"""
 
     # 버튼으로 파일 저장
     def save_ongoing(self):
@@ -170,8 +173,7 @@ class MyWindow(QMainWindow, form_class):
             print("new_price:", new_price)
             hoga = "지정가"
 
-            if split_row_data[-1].rstrip() == '매수전' and new_price <= self.true_current[i][
-                0] and self.is_trading_time() == True:
+            if split_row_data[-1].rstrip() == '매수전' and new_price <= self.true_current[i] and self.is_trading_time() == True:
                 self.kiwoom.send_order("send_order_req", "0101", account, 1, code, num, int(new_price),
                                        hoga_lookup[hoga], "")
                 # 주문이 들어갔을 때만 주문 완료로 바꿈
@@ -247,6 +249,8 @@ class MyWindow(QMainWindow, form_class):
                     lr_price = float(lr) * float(purchase_price)
                     pr_price = int(pr_price)
                     lr_price = int(lr_price)
+                    lr_list[code_name] = lr_price
+                    pr_list[code_name] = pr_price
                     print("profit rate price: ", pr_price)
                     print("loss rate price: ", lr_price)
                     print("current price: ", current_price)
@@ -353,6 +357,9 @@ class MyWindow(QMainWindow, form_class):
     def timeout3(self):
         if self.trade_stocks_done == False:
             self.trade_stocks()
+            self.check_balance()
+            self.check_chejan_balance()
+            self.load_buy_sell_list()
         elif self.is_trading_time() == False:
             self.trade_stocks_done = True
 
@@ -461,6 +468,9 @@ class MyWindow(QMainWindow, form_class):
         # opw00001
         # 예수금 데이터 얻어오기
         self.kiwoom.set_input_value("계좌번호", account_number)
+        self.kiwoom.set_input_value("비밀번호", "8405")
+        self.kiwoom.set_input_value("비밀번호입력매체구분", "00")
+        self.kiwoom.set_input_value("조회구분", 1)
         self.kiwoom.comm_rq_data("opw00001_req", "opw00001", 0, "2000")
 
         # balance
@@ -510,7 +520,7 @@ class MyWindow(QMainWindow, form_class):
         self.kiwoom.comm_rq_data("opt10081_req", "opt10081", 0, "0101")
 
     def get_curclose(self):
-        self.true_close = []
+        #self.true_close = []
         self.true_current = []
         self.code = []
         self.buy_list = []
@@ -533,12 +543,43 @@ class MyWindow(QMainWindow, form_class):
         for i in range(len(self.code)):
             print("code: ", self.code[i])
             self.get_ohlcv(self.code[i], today)
-            self.true_close.append(self.kiwoom.final['close'])
-            self.true_current.append(self.kiwoom.current['current'])
-        print(self.true_close)
+            #self.true_close.append(self.kiwoom.final['close'])
+            self.true_current += self.kiwoom.current['current']
+        print(self.true_current)
 
         f.close()
         # return (true_close, true_current)
+
+    def get_close(self):
+        self.code = []
+        self.buy_list = []
+        true_close = []
+        today = datetime.datetime.today().strftime("%Y%m%d")
+
+        f = open("buy_list.txt", 'rt')
+        temp_list = f.readlines()
+        self.buy_list += temp_list
+        f.close()
+
+        try:
+            f = open("ongoing_list.txt", 'rt')
+            onbuy_list = f.readlines()
+            self.buy_list += onbuy_list
+            f.close()
+        except FileNotFoundError:
+            pass
+
+        for row_data in self.buy_list:
+            split_row_data = row_data.split(';')
+            self.code.append(split_row_data[0])
+
+        # 전날 종가를 받아옴
+        for i in range(len(self.code)):
+            self.get_ohlcv(self.code[i], today)
+            true_close.append(self.kiwoom.final['close'])
+        # return (true_close, true_current)
+
+        return true_close
 
 
 if __name__ == "__main__":
