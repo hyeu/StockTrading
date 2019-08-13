@@ -468,7 +468,7 @@ class MyWindow(QMainWindow, form_class):
         # opw00001
         # 예수금 데이터 얻어오기
         self.kiwoom.set_input_value("계좌번호", account_number)
-        self.kiwoom.set_input_value("비밀번호", "8405")
+        self.kiwoom.set_input_value("비밀번호", "xxxx")
         self.kiwoom.set_input_value("비밀번호입력매체구분", "00")
         self.kiwoom.set_input_value("조회구분", 1)
         self.kiwoom.comm_rq_data("opw00001_req", "opw00001", 0, "2000")
