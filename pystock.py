@@ -5,8 +5,9 @@ from PyQt5 import uic
 from Kiwoom import *
 import time
 import os
+import re
 
-TRADING_TIME = [[[9, 0], [15, 20]]]
+TRADING_TIME = [[[8, 30], [15, 20]]]
 
 form_class = uic.loadUiType("pystock.ui")[0]
 
@@ -111,10 +112,17 @@ class MyWindow(QMainWindow, form_class):
         global lr_list
         global pr_list
 
-        f = open("buy_list.txt", 'rt')
-        buy_list = f.readlines()
-        auto_buy += buy_list
+        f = open("20190806추천.txt", 'rt')
+        temp_list = f.readlines()
         f.close()
+
+        frow_data = []
+        for row_data in temp_list:
+            frow_data.append(' '.join(row_data.split()))
+        frow_data = filter(str.strip, frow_data)
+        buy_list = []
+        for x in frow_data:
+            buy_list.append(x)
 
         try:
             f = open("ongoing_list.txt", 'rt')
@@ -137,15 +145,15 @@ class MyWindow(QMainWindow, form_class):
         correct_time2 = current_time.replace(hour=15, minute=30, second=0, microsecond=0)
         print(change_date)
         if correct_time1 <= current_time and current_time <= correct_time2 and change_date == True:
-            for i in range(len(auto_buy)):
-                split_row_data = auto_buy[i].split(';')
-                code = split_row_data[0]
-                hd = split_row_data[-2]
+            for i in range(3, len(buy_list) - 1):
+                split_row_data = buy_list[i].split(' ')
+                hd = re.sub(r'\([^)]*\)', '', split_row_data[7])
+                hd = hd.replace("일", "")
                 if int(hd) > 0:
                     hd = int(hd) - 1
                     print(hd)
                     for i, row_data in enumerate(buy_list):
-                        buy_list[i] = buy_list[i].replace(split_row_data[-2], str(hd))
+                        buy_list[i] = buy_list[i].replace(split_row_data[7], str(hd))
                         print(buy_list[i])
             change_date = False
 
@@ -157,24 +165,21 @@ class MyWindow(QMainWindow, form_class):
         if current_time <= correct_time1 and change_date == False:
             change_date = True
 
-        for i in range(len(auto_buy)):
-            split_row_data = auto_buy[i].split(';')
-            code = split_row_data[0]
-            hoga = split_row_data[1]
-            num = split_row_data[2]
-            price = split_row_data[3]
-            bdr = split_row_data[4]
+        for i in range(3, len(buy_list) - 1):
+            split_row_data = buy_list[i].split(' ')
+            hd = re.sub(r'\([^)]*\)', '', split_row_data[7])
+            hd = hd.replace("일", "")
+            code = re.sub(r'\([^)]*\)', '', split_row_data[8])
+            num = split_row_data[13].replace("주", "")
+            price = split_row_data[14].replace("원", "")
+            price = int(price.replace(",", ""))
+            pr = split_row_data[15]
+            lr = split_row_data[16]
 
-            print("bdr:", float(bdr))
-            # 전날 종가
-            new_price = self.true_close[i][0] * float(bdr)
-            print("cnt:", i)
-            print("rate[cnt]", self.true_close[i][0])
-            print("new_price:", new_price)
             hoga = "지정가"
 
-            if split_row_data[-1].rstrip() == '매수전' and new_price <= self.true_current[i] and self.is_trading_time() == True:
-                self.kiwoom.send_order("send_order_req", "0101", account, 1, code, num, int(new_price),
+            if split_row_data[-1].rstrip() == '매수전' and int(price) <= self.true_current[i] and self.is_trading_time() == True:
+                self.kiwoom.send_order("send_order_req", "0101", account, 1, code, num, int(price),
                                        hoga_lookup[hoga], "")
                 # 주문이 들어갔을 때만 주문 완료로 바꿈
                 if self.kiwoom.orderNum:
@@ -221,14 +226,18 @@ class MyWindow(QMainWindow, form_class):
                     purchase_price = purchase_price[:location2] + purchase_price[location2 + 1::]
                 location2 += 1
 
-            for j in range(len(auto_buy)):
-                split_row_data = auto_buy[j].split(';')
-                code = split_row_data[0]
-                hoga = split_row_data[1]
-                num = split_row_data[2]
-                pr = split_row_data[5]
-                lr = split_row_data[6]
-                hd = split_row_data[-2]
+            for j in range(3, len(buy_list) - 1):
+                split_row_data = buy_list[j].split(' ')
+                hd = re.sub(r'\([^)]*\)', '', split_row_data[7])
+                hd = hd.replace("일", "")
+                code = re.sub(r'\([^)]*\)', '', split_row_data[8])
+                num = split_row_data[13].replace("주", "")
+                price = split_row_data[14].replace("원", "")
+                price = int(price.replace(",", ""))
+                pr = split_row_data[15]
+                lr = split_row_data[16]
+                hoga = "지정가"
+
                 code_new = self.kiwoom.get_master_code_name(code)
 
                 due_time = current_time.replace(hour=15, minute=10, second=0, microsecond=0)
@@ -285,9 +294,17 @@ class MyWindow(QMainWindow, form_class):
         f.close()
 
     def load_buy_sell_list(self):
-        f = open("buy_list.txt", 'rt')
-        buy_list = f.readlines()
+        f = open("20190806추천.txt", 'rt')
+        temp_list = f.readlines()
         f.close()
+
+        frow_data = []
+        for row_data in temp_list:
+            frow_data.append(' '.join(row_data.split()))
+        frow_data = filter(str.strip, frow_data)
+        buy_list = []
+        for x in frow_data:
+            buy_list.append(x)
 
         f = open("ongoing_list.txt", 'rt')
         sell_list = f.readlines()
@@ -299,19 +316,18 @@ class MyWindow(QMainWindow, form_class):
         self.num_name = {}
         # buy list
         # j:행, i:열
-        for j in range(len(buy_list)):
-            row_data = buy_list[j]
-            split_row_data = row_data.split(';')
-            temp_name = split_row_data[0].rstrip()
+        for j in range(3, len(buy_list) - 1):
+            split_row_data = buy_list[j].split(' ')
+            temp_name = re.sub(r'\([^)]*\)', '', split_row_data[8])
             # 종목명 구하기
-            split_row_data[0] = self.kiwoom.get_master_code_name(split_row_data[0].rstrip())
-            self.num_name[split_row_data[0]] = temp_name
+            code_name = self.kiwoom.get_master_code_name(temp_name)
+            self.num_name[ code_name] = temp_name
             for i in range(len(split_row_data)):
                 item = QTableWidgetItem(split_row_data[i].rstrip())
                 item.setTextAlignment(Qt.AlignVCenter | Qt.AlignCenter)
                 self.tableWidget_3.setItem(j, i, item)
 
-        # sell list
+        # sell list #수정해야 함
         for j in range(len(sell_list)):
             row_data = sell_list[j]
             split_row_data = row_data.split(';')
@@ -372,10 +388,18 @@ class MyWindow(QMainWindow, form_class):
     def check_chejan_balance(self):
         buy_list = []
 
-        f = open("buy_list.txt", 'rt')
+        f = open("20190806추천.txt", 'rt')
         temp_list = f.readlines()
-        buy_list += temp_list
         f.close()
+
+        frow_data = []
+        for row_data in temp_list:
+            frow_data.append(' '.join(row_data.split()))
+        frow_data = filter(str.strip, frow_data)
+        buy_list = []
+        for x in frow_data:
+            buy_list.append(x)
+
         try:
             f = open("ongoing_list.txt", 'rt')
             onbuy_list = f.readlines()
@@ -384,15 +408,13 @@ class MyWindow(QMainWindow, form_class):
         except FileNotFoundError:
             pass
 
-        num = []
-        num_new = []
         name = []
         buy_list2 = []
-        for row_data in buy_list:
-            split_row_data = row_data.split(';')
-            name.append(split_row_data[0])
-            num.append(split_row_data[2])
-        num_new += num
+
+        for i in range(3, len(buy_list) - 1):
+            split_row_data = buy_list[i].split(' ')
+            code = re.sub(r'\([^)]*\)', '', split_row_data[8])
+            name.append(code)
         # SetInputValue(입력 데이터 설정)과 CommRqData(TR 요청)
         # 최대 20개의 보유 종목 데이터 리턴 반복
         self.kiwoom.reset_opt10075_output()
@@ -445,7 +467,7 @@ class MyWindow(QMainWindow, form_class):
         if self.is_end_time() == True or self.is_trading_time() == False or self.exe_save == 1:
             f = open("ongoing_list.txt", 'wt')
             for row_data in buy_list2:
-                row_data = row_data.replace('매수전', '주문완료')
+                row_data = row_data
                 f.write(row_data)
             f.close()
 
@@ -468,7 +490,7 @@ class MyWindow(QMainWindow, form_class):
         # opw00001
         # 예수금 데이터 얻어오기
         self.kiwoom.set_input_value("계좌번호", account_number)
-        self.kiwoom.set_input_value("비밀번호", "8405")
+        self.kiwoom.set_input_value("비밀번호", "1014")
         self.kiwoom.set_input_value("비밀번호입력매체구분", "00")
         self.kiwoom.set_input_value("조회구분", 1)
         self.kiwoom.comm_rq_data("opw00001_req", "opw00001", 0, "2000")
@@ -525,9 +547,18 @@ class MyWindow(QMainWindow, form_class):
         self.code = []
         self.buy_list = []
         today = datetime.datetime.today().strftime("%Y%m%d")
-        f = open("buy_list.txt", 'rt')
+
+        f = open("20190806추천.txt", 'rt')
         temp_list = f.readlines()
-        self.buy_list += temp_list
+        f.close()
+
+        frow_data = []
+        for row_data in temp_list:
+            frow_data.append(' '.join(row_data.split()))
+        frow_data = filter(str.strip, frow_data)
+        buy_list = []
+        for x in frow_data:
+            self.buy_list.append(x)
 
         try:
             f = open("ongoing_list.txt", 'rt')
@@ -536,9 +567,10 @@ class MyWindow(QMainWindow, form_class):
         except FileNotFoundError:
             pass
 
-        for row_data in self.buy_list:
-            split_row_data = row_data.split(';')
-            self.code.append(split_row_data[0])
+        for i in range(3, len(self.buy_list) - 1):
+            split_row_data = self.buy_list[i].split(' ')
+            code = re.sub(r'\([^)]*\)', '', split_row_data[8])
+            self.code.append(code)
         # 현재 시가과 전날 종가를 받아옴
         for i in range(len(self.code)):
             print("code: ", self.code[i])
@@ -556,22 +588,28 @@ class MyWindow(QMainWindow, form_class):
         true_close = []
         today = datetime.datetime.today().strftime("%Y%m%d")
 
-        f = open("buy_list.txt", 'rt')
+        f = open("20190806추천.txt", 'rt')
         temp_list = f.readlines()
-        self.buy_list += temp_list
         f.close()
 
-        try:
+        frow_data = []
+        for row_data in temp_list:
+            frow_data.append(' '.join(row_data.split()))
+        frow_data = filter(str.strip, frow_data)
+        for x in frow_data:
+            self.buy_list.append(x)
+        """try:
             f = open("ongoing_list.txt", 'rt')
             onbuy_list = f.readlines()
             self.buy_list += onbuy_list
-            f.close()
         except FileNotFoundError:
-            pass
+            pass"""
 
-        for row_data in self.buy_list:
-            split_row_data = row_data.split(';')
-            self.code.append(split_row_data[0])
+        for i in range(3, len(self.buy_list) - 1):
+            split_row_data = self.buy_list[i].split(' ')
+            print(split_row_data[8])
+            code = re.sub(r'\([^)]*\)', '', split_row_data[8])
+            self.code.append(code)
 
         # 전날 종가를 받아옴
         for i in range(len(self.code)):
