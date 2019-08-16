@@ -186,22 +186,52 @@
      </property>
      <column>
       <property name="text">
-       <string>종목명</string>
+       <string>엔진명</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>호가구분</string>
+       <string>HR</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>수량</string>
+       <string>PPT</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>가격</string>
+       <string>TC</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>AHP</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>PPTpD</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>예측치</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>HP(만기일)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>종목코드</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>종가</string>
       </property>
      </column>
      <column>
@@ -211,7 +241,22 @@
      </column>
      <column>
       <property name="text">
-       <string>LR</string>
+       <string>매수대금</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>VT-Ratio</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>주문주수</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>매수가</string>
       </property>
      </column>
      <column>
@@ -221,12 +266,7 @@
      </column>
      <column>
       <property name="text">
-       <string>HD</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>상태</string>
+       <string>LR</string>
       </property>
      </column>
     </widget>
