@@ -299,7 +299,7 @@ class MyWindow(QMainWindow, form_class):
                     print("loss rate price: ", lr_price)
                     print("current price: ", current_price)
 
-                    if price = "-1" and self.is_trading_time() == True:
+                    if price == "-1" and self.is_trading_time() == True:
 
                         if (current_price >= pr_price):
                             self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
