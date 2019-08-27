@@ -11,7 +11,6 @@ form_class = uic.loadUiType("pystock.ui")[0]
 
 change_date = False
 file_changed = False
-special = False
 pr_list = {}
 lr_list = {}
 
