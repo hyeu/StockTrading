@@ -77,9 +77,11 @@ class MyWindow(QMainWindow, form_class):
         f.close()
 
         self.ncode = []
+        self.check_price = []
         for i in range(len(buy_list)):
             split_row_data = buy_list[i].split(' ')
             self.ncode.append(split_row_data[8])
+            self.check_price.append(split_row_data[14])
 
     #실시간 설정
     def set_current(self):
@@ -227,17 +229,18 @@ class MyWindow(QMainWindow, form_class):
             price = split_row_data[14]
             hoga = "지정가"
 
-            if code in self.scode_list:
-                if int(price) > 0 and int(price) <= int(self.saveditem.item_view[code][1]) and self.is_trading_time() == True:
-                    print("{0}: 코드, {1}: 주문가격 {2}: 현재가".format(code, int(price), int(self.saveditem.item_view[code][1])))
-                    self.kiwoom.send_order("send_order_req", "0101", account, 1, code, int(num), int(price),
+            if self.is_trading_time()==True:
+                if code in self.scode_list:
+                    if int(price) > 0 and int(price) <= int(self.saveditem.item_view[code][1]):
+                        print("{0}: 코드, {1}: 주문가격 {2}: 현재가".format(code, int(price), int(self.saveditem.item_view[code][1])))
+                        self.kiwoom.send_order("send_order_req", "0101", account, 1, code, int(num), int(price),
                                            hoga_lookup[hoga], "")
-                    buy_list[i] = buy_list[i].replace(split_row_data[14], "-1")
+                        buy_list[i] = buy_list[i].replace(split_row_data[14], "-1")
 
-                elif self.is_trading_time() == False:
-                    self.kiwoom.send_order("send_order_req", "0101", account, 1, code, int(num), int(price),
-                                           hoga_lookup[hoga], "")
-                    buy_list[i] = buy_list[i].replace(split_row_data[14], "-1")
+            """elif self.is_trading_time() == False:
+                self.kiwoom.send_order("send_order_req", "0101", account, 1, code, int(num), int(price),
+                                       hoga_lookup[hoga], "")
+                buy_list[i] = buy_list[i].replace(split_row_data[14], "-1")"""
 
             f = open("buy_list.txt", 'wt')
             for row_data in buy_list:
@@ -266,7 +269,7 @@ class MyWindow(QMainWindow, form_class):
                 location2 += 1
 
             for j in range(len(auto_buy)):
-                split_row_data = auto_buy[i].split(' ')
+                split_row_data = auto_buy[j].split(' ')
                 hd = split_row_data[7]
                 code = split_row_data[8]
                 num = split_row_data[13]
@@ -448,12 +451,12 @@ class MyWindow(QMainWindow, form_class):
         print(datetime.datetime.now())
         self.trade_stocks()
         print("trade_stocks 완료")
-        self.check_balance()
-        print("check_balance 완료")
         self.check_chejan_balance()
         print("check_chejan_balance 완료")
         self.load_buy_sell_list()
         print("load_buy_sell_list 완료")
+        self.check_balance()
+        print("check_balance 완료")
 
     def check_chejan_balance(self):
         f = open("buy_list.txt", 'rt')
@@ -466,12 +469,15 @@ class MyWindow(QMainWindow, form_class):
         f.close()
 
         name = []
+        num_order = []
         buy_list2 = []
 
         for i in range(len(buy_list)):
             split_row_data = buy_list[i].split(' ')
             code = split_row_data[8]
+            num = split_row_data[13]
             name.append(code)
+            num_order.append(num)
         # SetInputValue(입력 데이터 설정)과 CommRqData(TR 요청)
         # 최대 20개의 보유 종목 데이터 리턴 반복
         self.kiwoom.reset_opt10075_output()
@@ -507,10 +513,17 @@ class MyWindow(QMainWindow, form_class):
                                         self.kiwoom.opt10075_output['no_che'][j][3]:
                                     # print("l-{0} {1}".format(l, self.kiwoom.opt10075_output['no_che'][l]))
                                     # print("j-{0} {1}".format(j, self.kiwoom.opt10075_output['no_che'][j]))
+                                    # 후에 매도가 됐는지 확인
                                     if not self.kiwoom.opt10075_output['no_che'][l][1] == '-매도':
                                         for k in range(len(buy_list)):
-                                            if int(self.num_name[self.kiwoom.opt10075_output['no_che'][j][3]]) == int(
-                                                    name[k]):
+                                            """print(k)
+                                            print("{0} {1}".format(int(self.kiwoom.opt10075_output['no_che'][j][4]), int(self.kiwoom.opt10075_output['no_che'][j][7])))
+                                            print("{0} {1}".format(int(num_order[k]), int(self.check_price[k])))
+                                            print("-----")"""
+                                            if int(self.num_name[self.kiwoom.opt10075_output['no_che'][j][3]]) == int(name[k]) \
+                                                    and int(self.kiwoom.opt10075_output['no_che'][j][4]) == int(num_order[k])\
+                                                    and int(self.kiwoom.opt10075_output['no_che'][j][7]) == int(self.check_price[k]):
+                                                print(buy_list[k])
                                                 buy_list2.append(buy_list[k])
                                 # print(self.kiwoom.opt10075_output['no_che'][j][3])
                                 # print("l - %d, j - %d" %(l, j))
@@ -545,7 +558,6 @@ class MyWindow(QMainWindow, form_class):
         # opw00001
         # 예수금 데이터 얻어오기
         self.kiwoom.set_input_value("계좌번호", account_number)
-
         #모의투자 시 밑의 세줄 주석 처리
         #self.kiwoom.set_input_value("비밀번호", "0000")
         #self.kiwoom.set_input_value("비밀번호입력매체구분", "00")
@@ -560,11 +572,9 @@ class MyWindow(QMainWindow, form_class):
 
         # 해당 칼럼에 값 추가
         for i in range(1, 6):
-            print(self.kiwoom.opw00018_output['single'][i - 1])
             item = QTableWidgetItem(self.kiwoom.opw00018_output['single'][i - 1])
             item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
             self.tableWidget.setItem(0, i, item)
-
         # 아이템 크기에 맞춰 행 높이 조절
         self.tableWidget.resizeRowsToContents()
         # Item list 보유종목 출력

@@ -242,12 +242,13 @@ class Kiwoom(QAxWidget):
             code = self._comm_get_data(trcode, "", rqname, i, "종목명")
             price = self._comm_get_data(trcode, "", rqname, i, "체결가격")
             vol = self._comm_get_data(trcode, "", rqname, i, "주문수량")
+            order_price = self._comm_get_data(trcode, "", rqname, i, "주문가격")
             yet_vol = self._comm_get_data(trcode, "", rqname, i, "미체결수량")
             time = self._comm_get_data(trcode, "", rqname, i, "시간")
 
             # self.sig.signal()
-            print(status, gubun, order_num, code, vol, yet_vol, time)
-            self.opt10075_output['no_che'].append([status, gubun, order_num, code, vol, yet_vol, time])
+            print(status, gubun, order_num, code, vol, yet_vol, time, order_price)
+            self.opt10075_output['no_che'].append([status, gubun, order_num, code, vol, yet_vol, time, order_price])
 
     # 예수금 정보 얻기 위한 TR
     def _opw00001(self, rqname, trcode):

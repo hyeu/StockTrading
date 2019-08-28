@@ -51,17 +51,17 @@
      </column>
      <column>
       <property name="text">
-       <string>새 행</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
        <string>총평가</string>
       </property>
      </column>
      <column>
       <property name="text">
        <string>총손익</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>총수익률(%)</string>
       </property>
      </column>
      <column>
@@ -325,6 +325,11 @@
      <column>
       <property name="text">
        <string>주문시간</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>주문가격</string>
       </property>
      </column>
     </widget>
