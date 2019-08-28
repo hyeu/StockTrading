@@ -378,11 +378,37 @@
      <string>파일 저장</string>
     </property>
    </widget>
+   <widget class="QTableWidget" name="tableWidget_5">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>560</y>
+      <width>401</width>
+      <height>192</height>
+     </rect>
+    </property>
+    <column>
+     <property name="text">
+      <string>종목명</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>현재가</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>등락률</string>
+     </property>
+    </column>
+   </widget>
    <zorder>groupBox_4</zorder>
    <zorder>groupBox_2</zorder>
    <zorder>groupBox_3</zorder>
    <zorder>groupBox</zorder>
    <zorder>pushButton</zorder>
+   <zorder>tableWidget_5</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
