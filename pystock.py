@@ -241,7 +241,7 @@ class MyWindow(QMainWindow, form_class):
                 location2 += 1
 
             for j in range(len(auto_buy)):
-                split_row_data = buy_list[i].split(' ')
+                split_row_data = buy_list[].split(' ')
                 hd = split_row_data[7]
                 code = split_row_data[8]
                 num = split_row_data[13]
