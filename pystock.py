@@ -313,7 +313,12 @@ class MyWindow(QMainWindow, form_class):
         global file_changed
 
         current_time = datetime.datetime.now()
-        today_file = str(current_time.year) + str(current_time.month) + str(current_time.day)
+        
+        if current_time.month < 10:
+            current_month = "0" + str(current_time.month)
+        else:
+            current_month = str(current_time.month)
+        today_file = str(current_time.year) + current_month + str(current_time.day)
 
         file_name = today_file +"추천.txt"
         print(file_name)
