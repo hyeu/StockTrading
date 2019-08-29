@@ -220,6 +220,7 @@ class MyWindow(QMainWindow, form_class):
 
         for i in range(num_data):
             code_name = self.kiwoom.opw00018_output['compare'][i][0]
+            quantity = self.kiwoom.opw00018_output['compare'][i][1]
             current_price = self.kiwoom.opw00018_output['compare'][i][2]
             purchase_price = self.kiwoom.opw00018_output['compare'][i][3]
             print("종목이름: %s, 현재가격: %s, 구입가격: %s" % (code_name, current_price, purchase_price))
@@ -260,7 +261,7 @@ class MyWindow(QMainWindow, form_class):
                                            hoga_lookup[hoga], "")
                         print("hd 만료, 시장가 판매")
 
-                if code_name == code_new:
+                if code_name == code_new and int(quantity) >= int(num):
                     print("code name: %s, lr: %f, pr: %f" % (code, float(lr), float(pr)))
                     pr_price = float(pr) * int(purchase_price)
                     print("pr_price: %f * %d = %d" % (float(pr), int(purchase_price), int(pr_price)))
