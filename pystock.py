@@ -344,6 +344,7 @@ class MyWindow(QMainWindow, form_class):
                 y = " ".join(x)
                 bl.append(y)
 
+            # 전날 미매도 파일 불러오기
             f = open("ongoing_list.txt", 'rt')
             sell_list = f.readlines()
             sell_list2 = [s.rstrip() for s in sell_list]
@@ -421,6 +422,7 @@ class MyWindow(QMainWindow, form_class):
 
         name = []
         num_order = []
+        file_price = []
         buy_list2 = []
         self.check_order = {}
 
@@ -428,8 +430,10 @@ class MyWindow(QMainWindow, form_class):
             split_row_data = buy_list[i].split(' ')
             code = split_row_data[8]
             num = split_row_data[13]
+            price = int(split_row_data[14])
             name.append(code)
             num_order.append(num)
+            file_price.append(price)
         # SetInputValue(입력 데이터 설정)과 CommRqData(TR 요청)
         # 최대 20개의 보유 종목 데이터 리턴 반복
         self.kiwoom.reset_opt10075_output()
@@ -465,6 +469,7 @@ class MyWindow(QMainWindow, form_class):
                 if self.is_end_time() == True or self.is_trading_time() == False or self.exe_save == 1:
                     if row[0] == '체결':
                         # print(self.kiwoom.opt10075_output['no_che'][j])
+                        # 오늘자 파일의 매수 확인 후 ongoing_list에 저장
                         if row[1] == '+매수':
                             # if row[1] == '-매도':
                             for l in range(0, j + 1):
@@ -485,6 +490,15 @@ class MyWindow(QMainWindow, form_class):
                                                 #print(buy_list[k])
                                                 #buy_list[k].replace(self.check_price[k], '-1')
                                                 buy_list2.append(buy_list[k])
+                        # 계속 감시 중인 종목이 매도되지 않을 시 ongoing_list에 추가
+                        elif row[1] == '-매도':
+                            for s in range(len(buy_list)):
+                                if file_price[s] == -1:
+                                    if not int(self.num_name[self.kiwoom.opt10075_output['no_che'][j][3]]) == int(name[s]) \
+                                        and int(self.kiwoom.opt10075_output['no_che'][j][4]) == int(num_order[s]):
+                                        buy_list2.append(buy_list[s])
+
+
                                 # print(self.kiwoom.opt10075_output['no_che'][j][3])
                                 # print("l - %d, j - %d" %(l, j))
                                 # print("확인용", self.kiwoom.opt10075_output['no_che'][l])
