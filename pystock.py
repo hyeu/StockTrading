@@ -10,7 +10,6 @@ TRADING_TIME = [[[8, 30], [15, 20]]]
 
 form_class = uic.loadUiType("pystock.ui")[0]
 
-change_date = False
 file_changed = False
 pr_list = {}
 lr_list = {}
@@ -171,8 +170,6 @@ class MyWindow(QMainWindow, form_class):
 
         global lr_list
         global pr_list
-        #global file_changed
-        global change_date
 
         current_time = datetime.datetime.now()
 
@@ -191,35 +188,7 @@ class MyWindow(QMainWindow, form_class):
         now = datetime.datetime.now()
         soo_day = datetime.datetime.today().weekday()
         soo = now.isocalendar()
-        # 수능날
-        if soo_day == 3 and soo[1] == 46:
-            correct_time1 = current_time.replace(hour=16, minute=15, second=0, microsecond=0)
-            correct_time2 = current_time.replace(hour=16, minute=30, second=0, microsecond=0)
-        else:
-            correct_time1 = current_time.replace(hour=15, minute=15, second=0, microsecond=0)
-            correct_time2 = current_time.replace(hour=15, minute=30, second=0, microsecond=0)
-
-
-        print(change_date)
-        if correct_time1 <= current_time and current_time <= correct_time2 and change_date == True:
-            for i in range(len(auto_buy)):
-                split_row_data = auto_buy[i].split(' ')
-                hd = split_row_data[7]
-                if int(hd) > 0:
-                    hd = int(hd) - 1
-                    print(hd)
-                    for i, row_data in enumerate(buy_list):
-                        buy_list[i] = buy_list[i].replace(split_row_data[7], str(hd))
-                        #print(buy_list[i])
-            change_date = False
-
-            f = open("buy_list.txt", 'wt')
-            for row_data in buy_list:
-                #print(row_data)
-                f.write(row_data)
-
-        if current_time <= correct_time1 and change_date == False:
-            change_date = True
+        today_hd = datetime.datetime.today().strftime("%Y%m%d")
 
         # 매수
         for i in range(len(buy_list)):
@@ -279,19 +248,17 @@ class MyWindow(QMainWindow, form_class):
                 hoga = "지정가"
 
                 code_new = self.kiwoom.get_master_code_name(code)
-
+                
+                due_time = current_time.replace(hour=15, minute=15, second=0, microsecond=0)
                 if soo_day == 3 and soo[1] == 46:
                     due_time = current_time.replace(hour=16, minute=15, second=0, microsecond=0)
-                else:
-                    due_time = current_time.replace(hour=15, minute=15, second=0, microsecond=0)
 
-                if due_time < current_time and hd == "0" and price == "-1":
-                    # hoga = "시장가"
-                    self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
+                if due_time < current_time and price == "-1":
+                    print(hd, today_hd)
+                    if hd == today_hd:
+                        self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
                                            hoga_lookup[hoga], "")
-                    #if self.kiwoom.orderNum:
-                    buy_list[j] = buy_list[j].replace(split_row_data[14], "-2")
-                    print("hd 만료, 시장가 판매")
+                        print("hd 만료, 시장가 판매")
 
                 if code_name == code_new:
                     print("code name: %s, lr: %f, pr: %f" % (code, float(lr), float(pr)))
@@ -363,8 +330,7 @@ class MyWindow(QMainWindow, form_class):
             for j in range(2, len(temp) - 1):
                 x = []
                 split_row_data = temp[j].split(' ')
-                split_row_data[7] = re.sub(r'\([^)]*\)', '', split_row_data[7])
-                split_row_data[7] = split_row_data[7].replace("일", "")
+                split_row_data[7] = (split_row_data[7][split_row_data[7].find("(") + 1:split_row_data[7].find(")")])
                 split_row_data[8] = re.sub(r'\([^)]*\)', '', split_row_data[8])
                 split_row_data[9] = split_row_data[9].replace("원", "")
                 split_row_data[9] = split_row_data[9].replace(",", "")
