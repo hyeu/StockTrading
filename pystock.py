@@ -104,7 +104,7 @@ class MyWindow(QMainWindow, form_class):
         self.exe_save = 1
         self.check_chejan_balance()
 
-    # 거래시간 확인 
+    # 거래시간 확인
     def is_trading_time(self):
         global special
         vals = []
@@ -199,9 +199,7 @@ class MyWindow(QMainWindow, form_class):
                         print("{0}: 코드, {1}: 주문가격 {2}: 현재가".format(code, int(price), int(self.saveditem.item_view[code][1])))
                         self.kiwoom.send_order("send_order_req", "0101", account, 1, code, int(num), int(price),
                                            hoga_lookup[hoga], "")
-                        #추가한 부분
-                        if code in self.check_order and int(price) in self.check_order[code]:
-                            buy_list[i] = buy_list[i].replace(split_row_data[14], "-1")
+                        buy_list[i] = buy_list[i].replace(price, "-1")
 
             """elif self.is_trading_time() == False:
                 self.kiwoom.send_order("send_order_req", "0101", account, 1, code, int(num), int(price),
@@ -424,7 +422,6 @@ class MyWindow(QMainWindow, form_class):
         num_order = []
         file_price = []
         buy_list2 = []
-        self.check_order = {}
 
         for i in range(len(buy_list)):
             split_row_data = buy_list[i].split(' ')
@@ -455,17 +452,10 @@ class MyWindow(QMainWindow, form_class):
 
         for j in range(item_count):
             row = self.kiwoom.opt10075_output['no_che'][j]
-            key = int(self.num_name[self.kiwoom.opt10075_output['no_che'][j][3]])
-            if key in self.check_order:
-                self.check_order[key].append(int(self.kiwoom.opt10075_output['no_che'][j][7]))
-            else:
-                self.check_order[key] = [int(self.kiwoom.opt10075_output['no_che'][j][7])]
-            #print(self.check_order)
             for i in range(len(row)):
                 item = QTableWidgetItem(row[i])
                 item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
                 self.tableWidget_4.setItem(j, i, item)
-                #self.check_order[name] = int(self.kiwoom.opt10075_output['no_che'][j][7])
                 if self.is_end_time() == True or self.is_trading_time() == False or self.exe_save == 1:
                     if row[0] == '체결':
                         # print(self.kiwoom.opt10075_output['no_che'][j])
