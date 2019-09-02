@@ -332,6 +332,11 @@
        <string>주문가격</string>
       </property>
      </column>
+     <column>
+      <property name="text">
+       <string>체결가</string>
+      </property>
+     </column>
     </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_4">

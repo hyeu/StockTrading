@@ -31,9 +31,8 @@ class MyWindow(QMainWindow, form_class):
 
         # 선정 종목 리스트
         self.load_buy_sell_list()
-
         self.file_upload()
-        self.currentTime = datetime.datetime.now()
+
         self.timer = QTimer(self)
         self.timer.start(1000)
         self.timer.timeout.connect(self.timeout)
@@ -51,14 +50,13 @@ class MyWindow(QMainWindow, form_class):
         self.comboBox.addItems(accounts_list)
         self.exe_save = 0
         self.pushButton.clicked.connect(self.save_ongoing)
-        self.check_balance()
         self.check_chejan_balance()
+        self.check_balance()
 
         # 주문 들어가는 부분
         self.timer3 = QTimer(self)
         self.timer3.start(1000 * 10)
         self.timer3.timeout.connect(self.timeout3)
-
 
     # 화면번호
     def getnum(self):
@@ -84,6 +82,7 @@ class MyWindow(QMainWindow, form_class):
 
     #실시간 설정
     def set_current(self):
+        print(self.ncode)
         for i in range(0, len(self.ncode)):
             self.kiwoom._set_real_reg(self.getnum(), self.ncode[i], "9001;10", "0")
 
@@ -108,7 +107,8 @@ class MyWindow(QMainWindow, form_class):
     def is_trading_time(self):
         global special
         vals = []
-        current_time = self.currentTime.time()
+        current_time = datetime.datetime.now().time()
+        #print(current_time)
         for start, end in TRADING_TIME:
             # 수능날
             now = datetime.datetime.now()
@@ -138,7 +138,7 @@ class MyWindow(QMainWindow, form_class):
 
     def is_end_time(self):
         vals = []
-        current_time = self.currentTime.time()
+        current_time = datetime.datetime.now().time()
         for start, end in TRADING_TIME:
             now = datetime.datetime.now()
             soo_day = datetime.datetime.today().weekday()
@@ -209,7 +209,6 @@ class MyWindow(QMainWindow, form_class):
             f = open("buy_list.txt", 'wt')
             for row_data in buy_list:
                 f.write(row_data)
-
         # 매도
         num_data = len(self.kiwoom.opw00018_output['multi'])
 
@@ -406,12 +405,12 @@ class MyWindow(QMainWindow, form_class):
         print(datetime.datetime.now())
         self.trade_stocks()
         print("trade_stocks 완료")
-        self.check_balance()
-        print("check_balance 완료")
         self.check_chejan_balance()
         print("check_chejan_balance 완료")
         self.load_buy_sell_list()
         print("load_buy_sell_list 완료")
+        self.check_balance()
+        print("check_balance 완료")
 
     def check_chejan_balance(self):
         f = open("buy_list.txt", 'rt')
@@ -513,8 +512,10 @@ class MyWindow(QMainWindow, form_class):
         self.kiwoom.reset_opw00018_output()
         account_number = self.kiwoom.get_login_info("ACCNO")
         account_number = account_number.split(';')[0]
+
         self.kiwoom.set_input_value("계좌번호", account_number)
         self.kiwoom.comm_rq_data("opw00018_req", "opw00018", 0, "2000")
+
         while self.kiwoom.remained_data:
             time.sleep(0.2)
             self.kiwoom.set_input_value("계좌번호", account_number)
@@ -522,20 +523,21 @@ class MyWindow(QMainWindow, form_class):
         # opw00001
         # 예수금 데이터 얻어오기
         self.kiwoom.set_input_value("계좌번호", account_number)
+        self.kiwoom.comm_rq_data("opw00001_req", "opw00001", 0, "2000")
         #모의투자 시 밑의 세줄 주석 처리
         #self.kiwoom.set_input_value("비밀번호", "0000")
         #self.kiwoom.set_input_value("비밀번호입력매체구분", "00")
         #self.kiwoom.set_input_value("조회구분", 1)
-        self.kiwoom.comm_rq_data("opw00001_req", "opw00001", 0, "2000")
-
+        #self.kiwoom.comm_rq_data("opw00001_req", "opw00001", 0, "2000")
         # balance
         # 예수금 데이터 tableWidget에 출력
         item = QTableWidgetItem(self.kiwoom.d2_deposit)
         item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
         self.tableWidget.setItem(0, 0, item)
 
-        # 해당 칼럼에 값 추가
+        # 해당 칼럼에 값 추
         for i in range(1, 6):
+            print(self.kiwoom.opw00018_output['single'][i - 1])
             item = QTableWidgetItem(self.kiwoom.opw00018_output['single'][i - 1])
             item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
             self.tableWidget.setItem(0, i, item)

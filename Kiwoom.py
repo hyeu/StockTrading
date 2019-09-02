@@ -240,7 +240,7 @@ class Kiwoom(QAxWidget):
             gubun = self._comm_get_data(trcode, "", rqname, i, "주문구분")
             order_num = self._comm_get_data(trcode, "", rqname, i, "주문번호")
             code = self._comm_get_data(trcode, "", rqname, i, "종목명")
-            price = self._comm_get_data(trcode, "", rqname, i, "체결가격")
+            price = self._comm_get_data(trcode, "", rqname, i, "체결가")
             vol = self._comm_get_data(trcode, "", rqname, i, "주문수량")
             order_price = self._comm_get_data(trcode, "", rqname, i, "주문가격")
             yet_vol = self._comm_get_data(trcode, "", rqname, i, "미체결수량")
@@ -248,7 +248,7 @@ class Kiwoom(QAxWidget):
 
             # self.sig.signal()
             print(status, gubun, order_num, code, vol, yet_vol, time, order_price)
-            self.opt10075_output['no_che'].append([status, gubun, order_num, code, vol, yet_vol, time, order_price])
+            self.opt10075_output['no_che'].append([status, gubun, order_num, code, vol, yet_vol, time, order_price, price])
 
     # 예수금 정보 얻기 위한 TR
     def _opw00001(self, rqname, trcode):
@@ -267,15 +267,10 @@ class Kiwoom(QAxWidget):
             low = self._comm_get_data(trcode, "", rqname, i, "저가")
             close = self._comm_get_data(trcode, "", rqname, i, "현재가")
             volume = self._comm_get_data(trcode, "", rqname, i, "거래량")
-            # time.sleep(0.2)
 
-            self.ohlcv['date'].append(date)
-            self.ohlcv['close'].append(int(close))
-
-        print("날짜: ", self.ohlcv['date'][1])
-        print("종가: ", self.ohlcv['close'][1])
-        self.final['close'].append(self.ohlcv['close'][1])
-        self.current['current'].append(self.ohlcv['close'][0])
+        # opw00018 데이터 변수에 저장
+    def reset_opw00018_output(self):
+        self.opw00018_output = {'single': [], 'multi': [], 'compare': []}
 
     # 잔고 및 보유종목 현황
     def _opw00018(self, rqname, trcode):
@@ -284,20 +279,20 @@ class Kiwoom(QAxWidget):
         total_eval_profit_loss_price = self._comm_get_data(trcode, "", rqname, 0, "총평가손익금액")
         total_earning_rate = self._comm_get_data(trcode, "", rqname, 0, "총수익률(%)")
         estimated_deposit = self._comm_get_data(trcode, "", rqname, 0, "추정예탁자산")
-
+        print("1")
         self.opw00018_output['single'].append(Kiwoom.change_format(total_purchase_price))
         self.opw00018_output['single'].append(Kiwoom.change_format(total_eval_price))
         self.opw00018_output['single'].append(Kiwoom.change_format(total_eval_profit_loss_price))
-
+        print("2")
         total_earning_rate = Kiwoom.change_format2(total_earning_rate)
-
+        print("3")
         if self.get_server_gubun():
             total_earning_rate = float(total_earning_rate) / 100
             total_earning_rate = str(total_earning_rate)
-
+        print("4")
         self.opw00018_output['single'].append(total_earning_rate)
         self.opw00018_output['single'].append(Kiwoom.change_format(estimated_deposit))
-
+        print("5")
         # multi data
         rows = self._get_repeat_cnt(trcode, rqname)
         for i in range(rows):
@@ -307,27 +302,18 @@ class Kiwoom(QAxWidget):
             current_price = self._comm_get_data(trcode, "", rqname, i, "현재가")
             eval_profit_loss_price = self._comm_get_data(trcode, "", rqname, i, "평가손익")
             earning_rate = self._comm_get_data(trcode, "", rqname, i, "수익률(%)")
-
+            print("6")
             quantity = Kiwoom.change_format(quantity)
             purchase_price = Kiwoom.change_format(purchase_price)
             current_price = Kiwoom.change_format(current_price)
             eval_profit_loss_price = Kiwoom.change_format(eval_profit_loss_price)
             earning_rate = Kiwoom.change_format2(earning_rate)
-
+            print("7")
             self.opw00018_output['multi'].append([name, quantity, purchase_price, current_price,
                                                   current_price, current_price,
                                                   eval_profit_loss_price, earning_rate])
+            print("8")
             self.opw00018_output['compare'].append([name, quantity, current_price, purchase_price, earning_rate])
-
-
-# opw00018 데이터 변수에 저장
-    def reset_opw00018_output(self):
-        self.opw00018_output = {'single': [], 'multi': [], 'compare': []}
-
-
-    def store_fianl_close(self):
-        self.final_close = []
-        self.current_close = []
 
 
 if __name__ == "__main__":
