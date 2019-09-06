@@ -50,7 +50,7 @@ class MyWindow(QMainWindow, form_class):
         self.comboBox.addItems(accounts_list)
         self.exe_save = 0
         self.pushButton.clicked.connect(self.save_ongoing)
-        self.check_chejan_balance()
+        #self.check_chejan_balance()
         self.check_balance()
 
         # 주문 들어가는 부분
@@ -74,11 +74,11 @@ class MyWindow(QMainWindow, form_class):
         f.close()
 
         self.ncode = []
-        self.check_price = []
+        #self.check_price = []
         for i in range(len(buy_list)):
             split_row_data = buy_list[i].split(' ')
             self.ncode.append(split_row_data[8])
-            self.check_price.append(split_row_data[14])
+            #self.check_price.append(split_row_data[14])
 
     #실시간 설정
     def set_current(self):
@@ -165,7 +165,6 @@ class MyWindow(QMainWindow, form_class):
 
     # 자동 주문
     def trade_stocks(self):
-        auto_buy = []
         hoga_lookup = {'지정가': "00", '시장가': "03"}
 
         global lr_list
@@ -175,7 +174,6 @@ class MyWindow(QMainWindow, form_class):
 
         f = open("buy_list.txt", 'rt')
         buy_list = f.readlines()
-        auto_buy += buy_list
         f.close()
 
         account = self.comboBox.currentText()
@@ -185,27 +183,27 @@ class MyWindow(QMainWindow, form_class):
         soo = now.isocalendar()
         today_hd = datetime.datetime.today().strftime("%Y%m%d")
 
+
+        order_check1 = ["주문완료", "매도완료"]
+
         # 매수
         for i in range(len(buy_list)):
             split_row_data = buy_list[i].split(' ')
+            machine = split_row_data[0]
             code = split_row_data[8]
             num = split_row_data[13]
             price = split_row_data[14]
             hoga = "지정가"
 
+            #print("first_order", self.first_order)
             if self.is_trading_time()==True:
                 if code in self.scode_list:
-                    if int(price) > 0 and int(price) <= int(self.saveditem.item_view[code][1]):
-                        print("{0}: 코드, {1}: 주문가격 {2}: 현재가".format(code, int(price), int(self.saveditem.item_view[code][1])))
-                        self.kiwoom.send_order("send_order_req", "0101", account, 1, code, int(num), int(price),
+                    if not machine in order_check1:
+                        if int(price) <= int(self.saveditem.item_view[code][1]):
+                            print("{0}: 코드, {1}: 주문가격 {2}: 현재가".format(code, int(price), int(self.saveditem.item_view[code][1])))
+                            self.kiwoom.send_order("send_order_req", "0101", account, 1, code, int(num), int(price),
                                            hoga_lookup[hoga], "")
-                        buy_list[i] = buy_list[i].replace(price, "-1")
-
-            """elif self.is_trading_time() == False:
-                self.kiwoom.send_order("send_order_req", "0101", account, 1, code, int(num), int(price),
-                                       hoga_lookup[hoga], "")
-                buy_list[i] = buy_list[i].replace(split_row_data[14], "-1")"""
-
+                            buy_list[i] = buy_list[i].replace(machine, order_check1[0])
             f = open("buy_list.txt", 'wt')
             for row_data in buy_list:
                 f.write(row_data)
@@ -234,6 +232,7 @@ class MyWindow(QMainWindow, form_class):
 
             for j in range(len(buy_list)):
                 split_row_data = buy_list[j].split(' ')
+                machine = split_row_data[0]
                 hd = split_row_data[7]
                 code = split_row_data[8]
                 num = split_row_data[13]
@@ -248,7 +247,7 @@ class MyWindow(QMainWindow, form_class):
                 if soo_day == 3 and soo[1] == 46:
                     due_time = current_time.replace(hour=16, minute=15, second=0, microsecond=0)
 
-                if due_time < current_time and price == "-1":
+                if due_time < current_time and machine == "주문완료":
                     print(hd, today_hd)
                     if hd == today_hd:
                         self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
@@ -269,14 +268,14 @@ class MyWindow(QMainWindow, form_class):
                     print("loss rate price: ", lr_price)
                     print("current price: ", current_price)
 
-                    if price == "-1" and self.is_trading_time() == True:
+                    if machine == "주문완료" and self.is_trading_time() == True:
 
                         if (current_price >= pr_price):
                             self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
                                                    hoga_lookup[hoga], "")
                             print("pr 주문완료")
                             print(account, code, num, current_price, hoga_lookup[hoga])
-                            buy_list[j] = buy_list[j].replace(split_row_data[14], "-2")
+                            buy_list[j] = buy_list[j].replace(machine, "매도완료")
                             break
 
 
@@ -284,7 +283,7 @@ class MyWindow(QMainWindow, form_class):
                             self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
                                                    hoga_lookup[hoga], "")
                             print(account, code, num, current_price, hoga_lookup[hoga])
-                            buy_list[j] = buy_list[j].replace(split_row_data[14], "-2")
+                            buy_list[j] = buy_list[j].replace(machine, "매도완료")
         print(lr_list)
         print(pr_list)
 
@@ -403,14 +402,17 @@ class MyWindow(QMainWindow, form_class):
 
     def timeout3(self):
         print(datetime.datetime.now())
-        self.trade_stocks()
-        print("trade_stocks 완료")
-        self.check_chejan_balance()
-        print("check_chejan_balance 완료")
-        self.load_buy_sell_list()
-        print("load_buy_sell_list 완료")
         self.check_balance()
         print("check_balance 완료")
+        self.check_chejan_balance()
+        print("check_chejan_balance 완료")
+        self.trade_stocks()
+        print("trade_stocks 완료")
+        self.is_order_correct()
+        print("order_check 완료")
+        self.load_buy_sell_list()
+        print("load_buy_sell_list 완료")
+
 
     def check_chejan_balance(self):
         f = open("buy_list.txt", 'rt')
@@ -421,15 +423,19 @@ class MyWindow(QMainWindow, form_class):
         num_order = []
         file_price = []
         buy_list2 = []
+        check_order = []
+        self.first_order = {}
 
         for i in range(len(buy_list)):
             split_row_data = buy_list[i].split(' ')
+            machine = split_row_data[0]
             code = split_row_data[8]
             num = split_row_data[13]
             price = int(split_row_data[14])
             name.append(code)
             num_order.append(num)
             file_price.append(price)
+            check_order.append(machine)
         # SetInputValue(입력 데이터 설정)과 CommRqData(TR 요청)
         # 최대 20개의 보유 종목 데이터 리턴 반복
         self.kiwoom.reset_opt10075_output()
@@ -455,7 +461,11 @@ class MyWindow(QMainWindow, form_class):
                 item = QTableWidgetItem(row[i])
                 item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
                 self.tableWidget_4.setItem(j, i, item)
-                if self.is_end_time() == True or self.is_trading_time() == False or self.exe_save == 1:
+                if row[0] == '접수':
+                    if row[1] == '+매수':
+                        self.first_order[int(self.num_name[self.kiwoom.opt10075_output['no_che'][j][3]])] = \
+                        int(self.kiwoom.opt10075_output['no_che'][j][7])
+                if self.is_end_time() == True or self.exe_save == 1:
                     if row[0] == '체결':
                         # print(self.kiwoom.opt10075_output['no_che'][j])
                         # 오늘자 파일의 매수 확인 후 ongoing_list에 저장
@@ -475,14 +485,14 @@ class MyWindow(QMainWindow, form_class):
                                             print("-----")"""
                                             if int(self.num_name[self.kiwoom.opt10075_output['no_che'][j][3]]) == int(name[k]) \
                                                     and int(self.kiwoom.opt10075_output['no_che'][j][4]) == int(num_order[k])\
-                                                    and int(self.kiwoom.opt10075_output['no_che'][j][7]) == int(self.check_price[k]):
+                                                    and int(self.kiwoom.opt10075_output['no_che'][j][7]) == int(file_price[k]):
                                                 #print(buy_list[k])
                                                 #buy_list[k].replace(self.check_price[k], '-1')
                                                 buy_list2.append(buy_list[k])
                         # 계속 감시 중인 종목이 매도되지 않을 시 ongoing_list에 추가
                         elif row[1] == '-매도':
                             for s in range(len(buy_list)):
-                                if file_price[s] == -1:
+                                if check_order[s] == "주문완료":
                                     if not int(self.num_name[self.kiwoom.opt10075_output['no_che'][j][3]]) == int(name[s]) \
                                         and int(self.kiwoom.opt10075_output['no_che'][j][4]) == int(num_order[s]):
                                         buy_list2.append(buy_list[s])
@@ -561,6 +571,34 @@ class MyWindow(QMainWindow, form_class):
                 item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
                 self.tableWidget_2.setItem(j, i, item)
         self.tableWidget_2.resizeRowsToContents()
+
+    # 매수 조건은 완료하였지만 실제 매수가 안 되는 경우가 있어 확인
+    def is_order_correct(self):
+        f = open("buy_list.txt", 'rt')
+        buy_list = f.readlines()
+        f.close()
+
+        order_check1 = ["주문완료", "매도완료"]
+
+        # 매수
+        for i in range(len(buy_list)):
+            split_row_data = buy_list[i].split(' ')
+            machine = split_row_data[0]
+            code = split_row_data[8]
+            num = split_row_data[13]
+            price = split_row_data[14]
+            hoga = "지정가"
+
+            if machine == order_check1[0]:
+                if not int(code) in self.first_order:
+                        buy_list[i] = buy_list[i].replace(machine, "미매수")
+
+                f = open("buy_list.txt", 'wt')
+                for row_data in buy_list:
+                    f.write(row_data)
+
+
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
