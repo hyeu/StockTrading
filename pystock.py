@@ -150,8 +150,9 @@ class MyWindow(QMainWindow, form_class):
             # 새해 다음날
             elif now.month == 1 and now.day == 2:
                 end_time = datetime.time(hour=15, minute=20)
+            # 동시 호가 시간 포함한 3시 30분
             else:
-                end_time = datetime.time(hour=end[0], minute=end[1])
+                end_time = datetime.time(hour=end[0], minute=end[1]+10)
 
             if (current_time == end_time):
                 vals.append(True)
@@ -165,6 +166,7 @@ class MyWindow(QMainWindow, form_class):
 
     # 자동 주문
     def trade_stocks(self):
+        self.is_order_correct()
         hoga_lookup = {'지정가': "00", '시장가': "03"}
 
         global lr_list
@@ -408,11 +410,8 @@ class MyWindow(QMainWindow, form_class):
         print("check_chejan_balance 완료")
         self.trade_stocks()
         print("trade_stocks 완료")
-        self.is_order_correct()
-        print("order_check 완료")
         self.load_buy_sell_list()
         print("load_buy_sell_list 완료")
-
 
     def check_chejan_balance(self):
         f = open("buy_list.txt", 'rt')
@@ -461,13 +460,14 @@ class MyWindow(QMainWindow, form_class):
                 item = QTableWidgetItem(row[i])
                 item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
                 self.tableWidget_4.setItem(j, i, item)
+                # 매수만 된 종목 확인
                 if row[0] == '접수':
                     if row[1] == '+매수':
                         self.first_order[int(self.num_name[self.kiwoom.opt10075_output['no_che'][j][3]])] = \
                         int(self.kiwoom.opt10075_output['no_che'][j][7])
+                # ongoin_list 저장
                 if self.is_end_time() == True or self.exe_save == 1:
                     if row[0] == '체결':
-                        # print(self.kiwoom.opt10075_output['no_che'][j])
                         # 오늘자 파일의 매수 확인 후 ongoing_list에 저장
                         if row[1] == '+매수':
                             # if row[1] == '-매도':
@@ -479,10 +479,6 @@ class MyWindow(QMainWindow, form_class):
                                     # 후에 매도가 됐는지 확인
                                     if not self.kiwoom.opt10075_output['no_che'][l][1] == '-매도':
                                         for k in range(len(buy_list)):
-                                            """print(k)
-                                            print("{0} {1}".format(int(self.kiwoom.opt10075_output['no_che'][j][4]), int(self.kiwoom.opt10075_output['no_che'][j][7])))
-                                            print("{0} {1}".format(int(num_order[k]), int(self.check_price[k])))
-                                            print("-----")"""
                                             if int(self.num_name[self.kiwoom.opt10075_output['no_che'][j][3]]) == int(name[k]) \
                                                     and int(self.kiwoom.opt10075_output['no_che'][j][4]) == int(num_order[k])\
                                                     and int(self.kiwoom.opt10075_output['no_che'][j][7]) == int(file_price[k]):
@@ -545,7 +541,7 @@ class MyWindow(QMainWindow, form_class):
         item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
         self.tableWidget.setItem(0, 0, item)
 
-        # 해당 칼럼에 값 추
+        # 해당 칼럼에 값 추가
         for i in range(1, 6):
             print(self.kiwoom.opw00018_output['single'][i - 1])
             item = QTableWidgetItem(self.kiwoom.opw00018_output['single'][i - 1])
