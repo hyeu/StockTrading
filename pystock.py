@@ -146,16 +146,18 @@ class MyWindow(QMainWindow, form_class):
             # 수능날
             if now.month == 11 and soo_day == 3:
                 if soo[1] == 46:
-                    end_time = datetime.time(hour=16, minute=20)
+                    start_time = datetime.time(hour=16, minute=20)
             # 새해 다음날
             elif now.month == 1 and now.day == 2:
-                end_time = datetime.time(hour=15, minute=20)
+                start_time = datetime.time(hour=15, minute=20)
             # 동시 호가 시간 포함한 3시 30분
             else:
-                end_time = datetime.time(hour=end[0], minute=end[1]+10)
-
-            if (current_time == end_time):
+                end_che = datetime.time(hour=4, minute=15)
+                start_time = datetime.time(hour=end[0], minute=end[1]+10)
+            if (current_time >= start_time):
                 vals.append(True)
+            elif(current_time >= end_che and current_time <=start_time):
+                vals.append(False)
             else:
                 vals.append(False)
                 pass
@@ -309,7 +311,7 @@ class MyWindow(QMainWindow, form_class):
             print("오늘의 추천 파일을 찾을 수 없습니다.")
 
 
-        elif file_changed == False and current_time < current_time.replace(hour=8, minute=30):
+        elif file_changed == False and current_time < current_time.replace(hour=15, minute=16):
             print(file_name, " buy_list로 변환")
             f = open(file_name, 'rt')
             temp_list = f.readlines()
@@ -503,14 +505,14 @@ class MyWindow(QMainWindow, form_class):
                                     #print(buy_list[k])
                                     buy_list2.append(buy_list[k])"""
         buy_list2 = list(set(buy_list2))
-        if self.is_end_time() == True or self.is_trading_time() == False or self.exe_save == 1:
+        if self.is_end_time()==True or self.exe_save == 1:
             f = open("ongoing_list.txt", 'wt')
             for row_data in buy_list2:
                 row_data = row_data
                 f.write(row_data)
             f.close()
 
-        self.exe_save == 0
+        self.exe_save = 0
         self.tableWidget_4.resizeRowsToContents()
 
     # 잔고 및 보유 계좌 정보 확인
@@ -587,7 +589,7 @@ class MyWindow(QMainWindow, form_class):
 
             if machine == order_check1[0]:
                 if not int(code) in self.first_order:
-                        buy_list[i] = buy_list[i].replace(machine, "미매수")
+                    buy_list[i] = buy_list[i].replace(machine, "미매수")
 
                 f = open("buy_list.txt", 'wt')
                 for row_data in buy_list:
