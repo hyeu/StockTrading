@@ -257,6 +257,7 @@ class MyWindow(QMainWindow, form_class):
                         self.kiwoom.send_order("send_order_req", "0101", account, 2, code, num, current_price,
                                                hoga_lookup[hoga], "")
                         print("hd 만료, 시장가 판매")
+                        buy_list[j] = buy_list[j].replace(machine, "매도완료")
 
                 #if code_name == code_new and int(quantity) >= int(num): << 에러남 확인 바람
                 if code_name == code_new:
